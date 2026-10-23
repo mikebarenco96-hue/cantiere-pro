@@ -62,7 +62,6 @@ case 'scale':result=`Misura reale: ${fmt(v('a')*v('b')/100)} m`;break;
 case 'fuel':result=`Carburante: ${fmt(v('a')*v('b'))} L · Costo: CHF ${fmt(v('a')*v('b')*v('c'))}`;break;
 case 'units':result=`${fmt(v('a'))} m = ${fmt(v('a')*100)} cm = ${fmt(v('a')*1000)} mm`;break;
 }
-
 if ($('calcType').value === 'slope') {
   const h = Math.max(0, v('a'));
   const z = Math.max(0, v('b'));
