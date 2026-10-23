@@ -61,86 +61,144 @@ units:[['a','Metri da convertire',1]]
 function calcFields(){
   if($('calcType').value==='slope'){
     $('calcFields').innerHTML=`
+      <label>Profondità dello scavo (m)</label>
+      <input id="slopeDepth" type="number" min="0" step="any" placeholder="Es. 2.5">
+      <label>Distanza orizzontale (m)</label>
+      <input id="slopeHorizontal" type="number" min="0" step="any" placeholder="Es. 7.5">
       <label>Rapporto orizzontale : verticale</label>
       <div class="row">
-        <div><label>Orizzontale</label><input id="slopeH" type="number" min="0.01" step="any" value="3"></div>
-        <div><label>Verticale</label><input id="slopeV" type="number" min="0.01" step="any" value="1"></div>
+        <div><label>Orizzontale</label><input id="slopeH" type="number" min="0.01" step="any" placeholder="Es. 3"></div>
+        <div><label>Verticale</label><input id="slopeV" type="number" min="0.01" step="any" placeholder="Es. 1"></div>
       </div>
-      <label>Come vuoi calcolare?</label>
-      <select id="slopeMode">
-        <option value="depth">Inserisco la profondità → calcolo la distanza orizzontale</option>
-        <option value="horizontal">Inserisco la distanza orizzontale → calcolo la profondità</option>
-      </select>
-      <label id="slopeInputLabel">Profondità dello scavo (m)</label>
-      <input id="slopeInput" type="number" min="0" step="any" value="2.5">
-      <div class="note">Esempio: rapporto 3:1 significa 3 metri orizzontali per ogni metro verticale.</div>`;
-    $('slopeMode').onchange=()=>{
-      $('slopeInputLabel').textContent=$('slopeMode').value==='depth'
-        ?'Profondità dello scavo (m)'
-        :'Distanza orizzontale disponibile (m)';
-      updateSlope();
-    };
-    ['slopeH','slopeV','slopeInput'].forEach(id=>$(id).oninput=updateSlope);
+      <div class="note">Inserisci almeno due dati: profondità, distanza orizzontale oppure rapporto. Gli altri valori verranno calcolati.</div>`;
+    ['slopeDepth','slopeHorizontal','slopeH','slopeV'].forEach(id=>{
+      $(id).oninput=updateSlope;
+    });
     updateSlope();
     return;
   }
+
   $('calcFields').innerHTML=defs[$('calcType').value]
     .map(([id,label,value])=>`<label>${label}</label><input id="calc_${id}" type="number" step="any" value="${value}">`).join('');
 }
 
 function updateSlope(){
-  const h=Number($('slopeH').value);
-  const v=Number($('slopeV').value);
-  const input=Number($('slopeInput').value);
-  const mode=$('slopeMode').value;
+  const read=id=>{
+    const el=$(id);
+    if(!el || el.value.trim()==='') return null;
+    const n=Number(el.value);
+    return Number.isFinite(n)?n:null;
+  };
 
-  if(!Number.isFinite(h)||!Number.isFinite(v)||!Number.isFinite(input)||h<=0||v<=0||input<0){
-    $('calcResult').textContent='Inserisci valori validi. Il rapporto deve essere maggiore di zero.';
-    return;
+  let d=read('slopeDepth');
+  let x=read('slopeHorizontal');
+  const rh=read('slopeH');
+  const rv=read('slopeV');
+  const hasRatio=rh!==null && rv!==null;
+
+  if((d!==null && d<0)||(x!==null && x<0)||
+     (rh!==null && rh<=0)||(rv!==null && rv<=0)){
+    $('calcResult').textContent='Le misure non possono essere negative. Il rapporto deve essere maggiore di zero.';
+    return false;
   }
 
-  const horizontal=mode==='depth'?input*h/v:input;
-  const depth=mode==='depth'?input:input*v/h;
-  const pct=v/h*100;
-  const angle=Math.atan2(v,h)*180/Math.PI;
-  const scale=Math.min(230/Math.max(horizontal,0.1),85/Math.max(depth,0.1));
-  const x=35+horizontal*scale;
-  const y=115-depth*scale;
+  if((rh===null)!==(rv===null)){
+    $('calcResult').textContent='Per inserire il rapporto, completa sia il valore orizzontale sia quello verticale.';
+    return false;
+  }
+
+  const count=[d!==null,x!==null,hasRatio].filter(Boolean).length;
+
+  if(count<2){
+    $('calcResult').textContent='Inserisci almeno due dati: profondità, distanza orizzontale oppure rapporto H:V.';
+    return false;
+  }
+
+  let hRatio, vRatio;
+
+  if(d!==null && x!==null){
+    if(d===0){
+      $('calcResult').textContent='La profondità deve essere maggiore di zero per ricavare il rapporto.';
+      return false;
+    }
+    hRatio=x/d;
+    vRatio=1;
+
+    if(hasRatio && Math.abs((rh/rv)-hRatio)>0.01*Math.max(1,hRatio)){
+      $('calcResult').textContent='I tre dati non corrispondono: controlla profondità, distanza orizzontale e rapporto.';
+      return false;
+    }
+  } else if(hasRatio){
+    hRatio=rh;
+    vRatio=rv;
+
+    if(d!==null){
+      x=d*hRatio/vRatio;
+    } else if(x!==null){
+      if(x===0){
+        $('calcResult').textContent='La distanza orizzontale deve essere maggiore di zero.';
+        return false;
+      }
+      d=x*vRatio/hRatio;
+    }
+  } else {
+    $('calcResult').textContent='Inserisci almeno due dati validi.';
+    return false;
+  }
+
+  if(d===null && x!==null) d=x*vRatio/hRatio;
+  if(x===null && d!==null) x=d*hRatio/vRatio;
+
+  if(d===null || x===null || d<=0 || x<0){
+    $('calcResult').textContent='Controlla i valori inseriti.';
+    return false;
+  }
+
+  const pct=d/x*100;
+  const angle=Math.atan2(d,x)*180/Math.PI;
+  const scale=Math.min(230/Math.max(x,0.1),85/Math.max(d,0.1));
+  const px=35+x*scale;
+  const py=115-d*scale;
   const f=n=>fmt(n);
 
   $('calcResult').innerHTML=`
-    <strong>Risultato pendenza ${f(h)}:${f(v)}</strong>
-    <p>Distanza orizzontale: <strong>${f(horizontal)} m</strong></p>
-    <p>Profondità: <strong>${f(depth)} m</strong></p>
+    <strong>Risultato della scarpata</strong>
+    <p>Profondità: <strong>${f(d)} m</strong></p>
+    <p>Distanza orizzontale: <strong>${f(x)} m</strong></p>
+    <p>Rapporto H:V: <strong>${f(hRatio)}:1</strong></p>
     <p>Pendenza: <strong>${f(pct)}%</strong></p>
     <p>Angolo: <strong>${f(angle)}°</strong></p>
     <svg viewBox="0 0 320 145" width="100%" role="img" aria-label="Sezione della scarpata">
       <path d="M35 15 V115 H295" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M35 115 L${x} ${y} L${x} 115 Z" fill="#f0a43a" fill-opacity=".25" stroke="#f0a43a" stroke-width="2"/>
-      <text x="${(35+x)/2}" y="${Math.max(12,y-8)}" fill="currentColor" font-size="11" text-anchor="middle">${f(depth)} m verticali</text>
-      <text x="${(35+x)/2}" y="137" fill="currentColor" font-size="11" text-anchor="middle">${f(horizontal)} m orizzontali</text>
+      <path d="M35 115 L${px} ${py} L${px} 115 Z" fill="#f0a43a" fill-opacity=".25" stroke="#f0a43a" stroke-width="2"/>
+      <text x="${(35+px)/2}" y="${Math.max(12,py-8)}" fill="currentColor" font-size="11" text-anchor="middle">${f(d)} m verticali</text>
+      <text x="${(35+px)/2}" y="137" fill="currentColor" font-size="11" text-anchor="middle">${f(x)} m orizzontali</text>
     </svg>
     <p><strong>Confronto dei rapporti comuni</strong></p>
     <table style="width:100%;border-collapse:collapse;text-align:left">
       <tr><th>Rapporto H:V</th><th>Pendenza</th><th>Angolo</th></tr>
-      ${[[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[8,1],[10,1]].map(([a,b])=>`<tr><td>${a}:${b}</td><td>${f(b/a*100)}%</td><td>${f(Math.atan2(b,a)*180/Math.PI)}°</td></tr>`).join('')}
+      ${[[1,1],[2,1],[3,1],[4,1],[5,1]].map(([a,b])=>`<tr><td>${a}:${b}</td><td>${f(b/a*100)}%</td><td>${f(Math.atan2(b,a)*180/Math.PI)}°</td></tr>`).join('')}
     </table>
     <p class="note">Verifica sempre la pendenza ammessa in base al terreno, al progetto e alle condizioni di sicurezza del cantiere.</p>`;
+  return true;
 }
 
 $('calcType').onchange=()=>{
   calcFields();
-  $('calcResult').textContent='Inserisci i valori e premi Calcola.';
+  if($('calcType').value!=='slope'){
+    $('calcResult').textContent='Inserisci i valori e premi Calcola.';
+  }
 };
 
 $('calculateBtn').onclick=()=>{
   if($('calcType').value==='slope'){
-    updateSlope();
+    if(!updateSlope()) return;
+    const result=$('calcResult').innerText;
     db.calculations.push({
       id:uid(),
       date:today(),
-      title:'Pendenza '+$('slopeH').value+':'+$('slopeV').value,
-      result:$('calcResult').innerText
+      title:'Calcolo pendenza',
+      result
     });
     save();
     return;
