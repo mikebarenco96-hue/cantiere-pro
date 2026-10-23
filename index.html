@@ -45,3 +45,61 @@ $('materialList').innerHTML=db.materials.map(x=>`<div class="item"><strong>${esc
 $('calcSaved').innerHTML=db.calculations.map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.title)}</strong>${esc(x.result)}<div class="actions"><button onclick="del('calculations','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun calcolo salvato.</p>';stats();$('storageInfo').textContent=`Salvati: ${db.sites.length} cantieri, ${db.machines.length} mezzi, ${db.reports.length} rapporti, ${db.tanks.length} cisterne.`}
 const defs={slope:[['a','Distanza orizzontale (m)',10],['b','Dislivello (m)',.5]],earth:[['a','Lunghezza (m)',10],['b','Larghezza (m)',2],['c','Profondità (m)',1]],trap:[['a','Base inferiore (m)',2],['b','Base superiore (m)',4],['c','Altezza (m)',1],['d','Lunghezza (m)',10]],truck:[['a','Volume da trasportare (m³)',20],['b','Capacità camion (m³)',8]],pipe:[['a','Dislivello (cm)',20],['b','Lunghezza tubo (m)',10]],concrete:[['a','Lunghezza (m)',5],['b','Larghezza (m)',3],['c','Spessore (cm)',15]],density:[['a','Volume (m³)',5],['b','Densità (t/m³)',1.8]],percent:[['a','Valore di riferimento',100],['b','Percentuale (%)',15]],scale:[['a','Misura sul disegno (cm)',3],['b','Scala (es. 100 per 1:100)',100]],fuel:[['a','Ore di lavoro',8],['b','Consumo (L/ora)',20],['c','Prezzo CHF/L',1.8]],units:[['a','Metri da convertire',1]]};
 function calcFields(){ $('calcFields').innerHTML=defs[$('calcType').value
+  .map(([id,label,value])=>`<label>${label}</label><input id="calc_${id}" type="number" step="any" value="${value}">`).join('')}
+$('calcType').onchange=()=>{calcFields();$('calcResult').textContent='Inserisci i valori e premi Calcola.'};
+$('calculateBtn').onclick=()=>{
+const v=id=>Number($('calc_'+id)?.value)||0;
+let result='',title=$('calcType').selectedOptions[0].text;
+switch($('calcType').value){
+case 'slope':result=`Pendenza: ${fmt(v('b')/v('a')*100)}% · Angolo: ${fmt(Math.atan(v('b')/v('a'))*180/Math.PI)}°`;break;
+case 'earth':result=`Volume: ${fmt(v('a')*v('b')*v('c'))} m³`;break;
+case 'trap':result=`Volume: ${fmt((v('a')+v('b'))/2*v('c')*v('d'))} m³`;break;
+case 'truck':result=`Viaggi necessari: ${v('b')>0?Math.ceil(v('a')/v('b')):'capacità non valida'}`;break;
+case 'pipe':result=`Pendenza: ${v('b')>0?fmt(v('a')/100/v('b')*100):'—'}% · Dislivello ${fmt(v('a'))} cm`;break;
+case 'concrete':result=`Calcestruzzo: ${fmt(v('a')*v('b')*v('c')/100)} m³`;break;
+case 'density':result=`Peso indicativo: ${fmt(v('a')*v('b'))} t`;break;
+case 'percent':result=`${fmt(v('b'))}% di ${fmt(v('a'))} = ${fmt(v('a')*v('b')/100)}`;break;
+case 'scale':result=`Misura reale: ${fmt(v('a')*v('b')/100)} m`;break;
+case 'fuel':result=`Carburante: ${fmt(v('a')*v('b'))} L · Costo: CHF ${fmt(v('a')*v('b')*v('c'))}`;break;
+case 'units':result=`${fmt(v('a'))} m = ${fmt(v('a')*100)} cm = ${fmt(v('a')*1000)} mm`;break;
+}
+$('calcResult').textContent=result;
+db.calculations.push({id:uid(),date:today(),title,result});
+save();
+};
+$('filterBtn').onclick=renderReports;
+function stats(){
+const from=$('statsFrom').value,to=$('statsTo').value;
+const a=db.reports.filter(r=>(!from||r.date>=from)&&(!to||r.date<=to));
+const total=a.reduce((s,r)=>s+Number(r.hours),0);
+$('statsResults').innerHTML=`<div class="result">Rapporti: ${a.length}<br>Ore totali: ${fmt(total)}</div>`+
+db.machines.map(m=>`<div class="item">${esc(m.name)}: ${fmt(a.filter(r=>r.machineId===m.id).reduce((s,r)=>s+Number(r.hours),0))} ore</div>`).join('');
+}
+$('statsBtn').onclick=stats;
+$('printBtn').onclick=()=>window.print();
+function csv(rows){
+return rows.map(row=>row.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
+}
+function exportReports(){
+const rows=[['Data','Codice cantiere','Cantiere','Mezzo','Ore','Attività','Note'],
+...db.reports.map(r=>[r.date,db.sites.find(s=>s.id===r.siteId)?.code||'',sname(r.siteId),mname(r.machineId),r.hours,r.activity,r.notes])];
+download('rapporti-cantiere.csv','\uFEFF'+csv(rows),'text/csv;charset=utf-8');
+}
+$('reportsCsv').onclick=exportReports;
+$('csvBtn').onclick=exportReports;
+$('exportBtn').onclick=()=>download('cantiere-pro-backup-'+today()+'.json',JSON.stringify(db,null,2),'application/json');
+$('importFile').onchange=async e=>{
+const f=e.target.files[0];if(!f)return;
+try{
+const o=JSON.parse(await f.text());
+if(!o||!Array.isArray(o.sites)||!Array.isArray(o.machines)||!Array.isArray(o.reports))throw Error();
+if(!confirm('Il ripristino sostituirà i dati presenti. Continuare?'))return;
+db={...defaults,...o};
+Object.keys(defaults).forEach(k=>{if(!Array.isArray(db[k]))db[k]=defaults[k].slice()});
+save();alert('Backup ripristinato');
+}catch(_){alert('Backup non valido')}
+finally{e.target.value=''}
+};
+calcFields();
+render();
+</script></body></html>
