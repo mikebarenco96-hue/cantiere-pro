@@ -1,0 +1,13 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="90" fill="#101820"/>
+  <path d="M70 350h372v45H70z" fill="#f5a623"/>
+  <path d="M100 320l45-85h100l45 85z" fill="#f5a623"/>
+  <path d="M145 235l35-65h65l-25 65z" fill="#ffcc33"/>
+  <path d="M185 170h80l30 65h-95z" fill="#f5a623"/>
+  <path d="M255 235h115l55 85H280z" fill="#f5a623"/>
+  <path d="M295 235l25-65h75l-25 65z" fill="#ffcc33"/>
+  <circle cx="170" cy="410" r="35" fill="#303b46" stroke="#f5a623" stroke-width="12"/>
+  <circle cx="355" cy="410" r="35" fill="#303b46" stroke="#f5a623" stroke-width="12"/>
+  <text x="256" y="115" font-family="Arial,sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#ffffff">CP</text>
+</svg>
