@@ -62,7 +62,46 @@ case 'scale':result=`Misura reale: ${fmt(v('a')*v('b')/100)} m`;break;
 case 'fuel':result=`Carburante: ${fmt(v('a')*v('b'))} L · Costo: CHF ${fmt(v('a')*v('b')*v('c'))}`;break;
 case 'units':result=`${fmt(v('a'))} m = ${fmt(v('a')*100)} cm = ${fmt(v('a')*1000)} mm`;break;
 }
-$('calcResult').textContent=result;
+
+if ($('calcType').value === 'slope') {
+  const h = Math.max(0, v('a'));
+  const z = Math.max(0, v('b'));
+  const pct = h > 0 ? z / h * 100 : 0;
+  const angle = Math.atan2(z, h) * 180 / Math.PI;
+  const ratio = z > 0 ? h / z : null;
+  const scale = Math.min(230 / Math.max(h, 0.1), 85 / Math.max(z, 0.1));
+  const x = 35 + h * scale;
+  const y = 115 - z * scale;
+  const ratios = [
+    [1,1],[2,1],[3,1],[4,1],[5,1],
+    [6,1],[8,1],[10,1],[1,2],[1,3],[1,4]
+  ];
+  const table = ratios.map(([rh,rv]) =>
+    `<tr><td>${rh}:${rv}</td><td>${fmt(rv/rh*100)}%</td><td>${fmt(Math.atan2(rv,rh)*180/Math.PI)}°</td></tr>`
+  ).join('');
+
+  $('calcResult').innerHTML =
+    `<strong>Pendenza: ${fmt(pct)}% · Angolo: ${fmt(angle)}°</strong>
+    <p>Rapporto orizzontale:verticale: ${
+      ratio === null ? 'verticale o dislivello nullo' : fmt(ratio)+':1'
+    }</p>
+    <svg viewBox="0 0 320 145" width="100%" role="img" aria-label="Grafico della pendenza">
+      <path d="M35 15 V115 H295" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M35 115 L${x} ${y} L${x} 115 Z"
+        fill="#f0a43a" fill-opacity=".25" stroke="#f0a43a" stroke-width="2"/>
+      <path d="M35 115 L${x} ${y}" stroke="#f0a43a" stroke-width="3"/>
+      <text x="150" y="137" fill="currentColor" font-size="11" text-anchor="middle">Orizzontale: ${fmt(h)} m</text>
+      <text x="${Math.min(x+5,245)}" y="${Math.max(y-5,12)}" fill="currentColor" font-size="11">Dislivello: ${fmt(z)} m</text>
+    </svg>
+    <h3>Tabella dei rapporti</h3>
+    <table style="width:100%;border-collapse:collapse;text-align:left">
+      <tr><th>Rapporto H:V</th><th>Pendenza</th><th>Angolo</th></tr>
+      ${table}
+    </table>`;
+} else {
+  $('calcResult').textContent = result;
+}
+  
 db.calculations.push({id:uid(),date:today(),title,result});
 save();
 };
