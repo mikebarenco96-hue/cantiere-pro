@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="it">
 <head>
+ <link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#101820">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#17212b">
@@ -10,6 +12,13 @@
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}header{padding:22px 16px 16px;background:#17212b;border-bottom:1px solid var(--line)}h1{margin:0;font-size:26px}header p{margin:5px 0 0;color:var(--muted)}main{max-width:850px;margin:auto;padding:14px}.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.tabs button{padding:12px 5px;font-size:14px}.tabs button.active{background:var(--accent);color:#18212a;border-color:var(--accent)}section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:14px}h2{font-size:19px;margin:0 0 12px}label{display:block;font-size:14px;color:var(--muted);margin:10px 0 5px}input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);background:#101820;color:var(--text);font:inherit}textarea{min-height:80px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:#263746;color:var(--text);font:inherit;font-weight:650;cursor:pointer}button.primary{background:var(--accent);color:#18212a;border-color:var(--accent);width:100%;margin-top:14px}button.danger{background:#42262a;color:#ffdada}.item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:9px}.item strong{display:block;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:4px}.item-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.item-actions button{font-size:13px;padding:8px}.empty{color:var(--muted);padding:12px 0}.note{font-size:12px;color:var(--muted);line-height:1.5}.hidden{display:none!important}.stat{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.stat:last-child{border:0}@media(max-width:480px){.row{grid-template-columns:1fr}.tabs button{font-size:12px}}
 </style>
 </head>
+ <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+ </script>
 <body>
 <header><h1>🚧 Cantiere Pro</h1><p>Gestione cantieri, mezzi e rapporti</p></header>
 <main>
