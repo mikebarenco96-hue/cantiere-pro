@@ -1,24 +1,20 @@
-<!doctype html>
+ <!doctype html>
 <html lang="it">
 <head>
- <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#101820">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#17212b">
+<meta name="description" content="Gestione cantieri, mezzi, rapporti ore e calcolo pendenze.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Cantiere Pro</title>
 <style>
 :root{--bg:#101820;--panel:#1b2732;--line:#344452;--text:#f4f7fa;--muted:#b5c2cd;--accent:#f0a43a;--danger:#d95b5b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}header{padding:22px 16px 16px;background:#17212b;border-bottom:1px solid var(--line)}h1{margin:0;font-size:26px}header p{margin:5px 0 0;color:var(--muted)}main{max-width:850px;margin:auto;padding:14px}.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}.tabs button{padding:12px 5px;font-size:14px}.tabs button.active{background:var(--accent);color:#18212a;border-color:var(--accent)}section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:14px}h2{font-size:19px;margin:0 0 12px}label{display:block;font-size:14px;color:var(--muted);margin:10px 0 5px}input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);background:#101820;color:var(--text);font:inherit}textarea{min-height:80px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:#263746;color:var(--text);font:inherit;font-weight:650;cursor:pointer}button.primary{background:var(--accent);color:#18212a;border-color:var(--accent);width:100%;margin-top:14px}button.danger{background:#42262a;color:#ffdada}.item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:9px}.item strong{display:block;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:4px}.item-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.item-actions button{font-size:13px;padding:8px}.empty{color:var(--muted);padding:12px 0}.note{font-size:12px;color:var(--muted);line-height:1.5}.hidden{display:none!important}.stat{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.stat:last-child{border:0}@media(max-width:480px){.row{grid-template-columns:1fr}.tabs button{font-size:12px}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}header{padding:22px 16px 16px;background:#17212b;border-bottom:1px solid var(--line)}h1{margin:0;font-size:26px}header p{margin:5px 0 0;color:var(--muted)}main{max-width:850px;margin:auto;padding:14px}.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}.tabs button{padding:12px 5px;font-size:14px}.tabs button.active{background:var(--accent);color:#18212a;border-color:var(--accent)}section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:14px}h2{font-size:19px;margin:0 0 12px}label{display:block;font-size:14px;color:var(--muted);margin:10px 0 5px}input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);background:#101820;color:var(--text);font:inherit}textarea{min-height:80px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:#263746;color:var(--text);font:inherit;font-weight:650;cursor:pointer}button.primary{background:var(--accent);color:#18212a;border-color:var(--accent);width:100%;margin-top:14px}button.danger{background:#42262a;color:#ffdada}.item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:9px}.item strong{display:block;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:4px}.item-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.item-actions button{font-size:13px;padding:8px}.empty{color:var(--muted);padding:12px 0}.note{font-size:12px;color:var(--muted);line-height:1.5}.hidden{display:none!important}.stat{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.stat:last-child{border:0}@media(max-width:480px){.row{grid-template-columns:1fr}.tabs button{font-size:12px}}
 </style>
 </head>
- <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js");
-  });
-}
- </script>
 <body>
 <header><h1>🚧 Cantiere Pro</h1><p>Gestione cantieri, mezzi e rapporti</p></header>
 <main>
@@ -27,6 +23,7 @@ if ("serviceWorker" in navigator) {
 <button data-tab="mezzi">Mezzi</button>
 <button data-tab="rapporti">Rapporti / ore</button>
 <button data-tab="pendenze">Pendenze</button>
+<button data-tab="backup">Backup</button>
 </div>
 
 <div id="cantieri" class="view">
@@ -65,7 +62,7 @@ if ("serviceWorker" in navigator) {
 <label for="filterSite">Filtra per codice cantiere</label><select id="filterSite"><option value="">Tutti i cantieri</option></select>
 <div id="hoursSummary"></div><div id="reportList" class="empty">Nessun rapporto registrato.</div>
 </section>
-<section class="panel"><h2>Backup dei dati</h2><p class="note">Esporta una copia dei dati per conservarla o trasferirla. I dati sono salvati in questo browser e non vengono sincronizzati automaticamente con altri dispositivi.</p><button id="exportBtn">Esporta backup JSON</button><label for="importFile">Ripristina backup JSON</label><input id="importFile" type="file" accept=".json,application/json"></section>
+
 </div>
 <p class="note">Versione iniziale. Salva i dati sul dispositivo/browser che stai usando. Esporta regolarmente un backup per non perderli.</p>
 </main>
@@ -98,6 +95,18 @@ if ("serviceWorker" in navigator) {
 </section>
 </div>
 
+<div id="backup" class="view hidden">
+<section class="panel">
+<h2>Backup e ripristino</h2>
+<p>Qui puoi salvare una copia dei tuoi cantieri, mezzi e rapporti, oppure recuperare una copia precedente.</p>
+<p class="note"><strong>Esporta backup:</strong> crea un file JSON da conservare nella cartella Download o copiare su Google Drive.</p>
+<button id="exportBtn" class="primary">Esporta backup JSON</button>
+<label for="importFile">Ripristina da un file backup JSON</label>
+<input id="importFile" type="file" accept=".json,application/json">
+<p class="note">Attenzione: ripristinare un backup sostituisce i dati attualmente presenti nell'app. Conserva il file in un posto sicuro. I dati non si sincronizzano automaticamente tra dispositivi.</p>
+</section>
+</div>
+
 <script>
 const KEY='cantiereProData_v1';
 let db={sites:[],machines:[],reports:[]};
@@ -120,7 +129,7 @@ function renderSites(){$('siteList').innerHTML=db.sites.length?db.sites.map(s=>`
 function renderMachines(){$('machineList').innerHTML=db.machines.length?db.machines.map(m=>`<div class="item"><strong>${esc(m.name)}</strong><div class="meta">${esc(m.code||'Codice non indicato')}</div><div class="item-actions"><button class="danger" data-delete-machine="${m.id}">Elimina mezzo</button></div></div>`).join(''):'<div class="empty">Nessun mezzo inserito.</div>';document.querySelectorAll('[data-delete-machine]').forEach(b=>b.onclick=()=>{const id=b.dataset.deleteMachine;if(confirm('Eliminare il mezzo? I rapporti già salvati resteranno nell’archivio.')){db.machines=db.machines.filter(m=>m.id!==id);save()}})}
 function fillSelects(){const oldSite=$('reportSite').value,oldMachine=$('reportMachine').value,oldFilter=$('filterSite').value;const opts=(arr,labelFn)=>arr.map(x=>`<option value="${x.id}">${esc(labelFn(x))}</option>`).join('');$('reportSite').innerHTML='<option value="">Seleziona cantiere</option>'+opts(db.sites,s=>s.code+(s.name?' — '+s.name:''));$('reportMachine').innerHTML='<option value="">Seleziona mezzo</option>'+opts(db.machines,m=>m.name+(m.code?' ('+m.code+')':''));$('filterSite').innerHTML='<option value="">Tutti i cantieri</option>'+opts(db.sites,s=>s.code+(s.name?' — '+s.name:''));if(db.sites.some(s=>s.id===oldSite))$('reportSite').value=oldSite;if(db.machines.some(m=>m.id===oldMachine))$('reportMachine').value=oldMachine;if(db.sites.some(s=>s.id===oldFilter))$('filterSite').value=oldFilter}
 function renderReports(){const filter=$('filterSite').value;const arr=db.reports.filter(r=>!filter||r.siteId===filter).sort((a,b)=>b.date.localeCompare(a.date));const total=arr.reduce((sum,r)=>sum+(Number(r.hours)||0),0);const byMachine={};arr.forEach(r=>byMachine[r.machineId]=(byMachine[r.machineId]||0)+Number(r.hours||0));$('hoursSummary').innerHTML=`<div class="stat"><span>Rapporti visualizzati</span><strong>${arr.length}</strong></div><div class="stat"><span>Totale ore</span><strong>${total.toLocaleString('it-CH')} h</strong></div>`+Object.entries(byMachine).map(([id,h])=>`<div class="stat"><span>${esc(machineName(id))}</span><strong>${h.toLocaleString('it-CH')} h</strong></div>`).join('');$('reportList').innerHTML=arr.length?arr.map(r=>`<div class="item"><strong>${esc(r.date)} · ${esc(r.hours)} ore</strong><div class="meta">Cantiere: ${esc(siteName(r.siteId))}</div><div class="meta">Mezzo: ${esc(machineName(r.machineId))}</div>${r.activity?`<p>${esc(r.activity)}</p>`:''}${r.notes?`<p>${esc(r.notes)}</p>`:''}<div class="item-actions"><button class="danger" data-delete-report="${r.id}">Elimina rapporto</button></div></div>`).join(''):'<div class="empty">Nessun rapporto per questo filtro.</div>';document.querySelectorAll('[data-delete-report]').forEach(b=>b.onclick=()=>{if(confirm('Eliminare questo rapporto?')){db.reports=db.reports.filter(r=>r.id!==b.dataset.deleteReport);save()}})}
-$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup-cantiere-pro.json';a.click();URL.revokeObjectURL(url)});
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup-cantiere-pro-'+dateToday()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)});
 $('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.sites)||!Array.isArray(data.machines)||!Array.isArray(data.reports))throw new Error();if(confirm('Importare il backup? I dati attuali verranno sostituiti.')){db=data;save();alert('Backup ripristinato.')}}catch(err){alert('File backup non valido.')}e.target.value=''});
 render();
 
@@ -143,5 +152,12 @@ function calculateSlope(){
 $('slopePreset').addEventListener('change',e=>{if(e.target.value!=='custom'){const [h,v]=e.target.value.split(',').map(Number);$('slopeH').value=h;$('slopeV').value=v;calculateSlope()}});
 
 calculateSlope();
+
+// Registra il servizio offline quando il sito è pubblicato su HTTPS.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('Service worker non registrato:', err));
+  });
+}
 </script>
 </body></html>
