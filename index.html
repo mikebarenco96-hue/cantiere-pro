@@ -1,163 +1,211 @@
- <!doctype html>
+
+<!doctype html>
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#17212b">
-<meta name="description" content="Gestione cantieri, mezzi, rapporti ore e calcolo pendenze.">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Cantiere Pro</title>
 <style>
-:root{--bg:#101820;--panel:#1b2732;--line:#344452;--text:#f4f7fa;--muted:#b5c2cd;--accent:#f0a43a;--danger:#d95b5b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}header{padding:22px 16px 16px;background:#17212b;border-bottom:1px solid var(--line)}h1{margin:0;font-size:26px}header p{margin:5px 0 0;color:var(--muted)}main{max-width:850px;margin:auto;padding:14px}.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}.tabs button{padding:12px 5px;font-size:14px}.tabs button.active{background:var(--accent);color:#18212a;border-color:var(--accent)}section.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:14px}h2{font-size:19px;margin:0 0 12px}label{display:block;font-size:14px;color:var(--muted);margin:10px 0 5px}input,select,textarea{width:100%;padding:12px;border-radius:9px;border:1px solid var(--line);background:#101820;color:var(--text);font:inherit}textarea{min-height:80px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}button{border:1px solid var(--line);border-radius:9px;padding:11px 13px;background:#263746;color:var(--text);font:inherit;font-weight:650;cursor:pointer}button.primary{background:var(--accent);color:#18212a;border-color:var(--accent);width:100%;margin-top:14px}button.danger{background:#42262a;color:#ffdada}.item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:9px}.item strong{display:block;font-size:16px}.meta{color:var(--muted);font-size:13px;margin-top:4px}.item-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.item-actions button{font-size:13px;padding:8px}.empty{color:var(--muted);padding:12px 0}.note{font-size:12px;color:var(--muted);line-height:1.5}.hidden{display:none!important}.stat{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line)}.stat:last-child{border:0}@media(max-width:480px){.row{grid-template-columns:1fr}.tabs button{font-size:12px}}
+:root{--bg:#101820;--panel:#1b2732;--line:#344452;--text:#f4f7fa;--muted:#b5c2cd;--accent:#f0a43a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,sans-serif}
+header{padding:20px;background:#17212b;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:26px}header p,.note,.meta{color:var(--muted)}
+main{max-width:1000px;margin:auto;padding:12px}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-bottom:12px}
+button{padding:10px;border:1px solid var(--line);border-radius:9px;background:#263746;color:var(--text);font:inherit;cursor:pointer;font-weight:600}
+button.active,button.primary{background:var(--accent);color:#18212a}
+button.primary{width:100%;margin-top:12px}
+button.danger{background:#48262a;color:#ffe0e0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;margin-bottom:12px}
+h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:15px 0 6px}
+label{display:block;font-size:13px;color:var(--muted);margin:9px 0 4px}
+input,select,textarea{width:100%;padding:11px;border-radius:8px;border:1px solid var(--line);background:#101820;color:var(--text);font:inherit}
+textarea{min-height:65px}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.view[hidden]{display:none!important}.item{border:1px solid var(--line);border-radius:9px;padding:11px;margin-top:8px;overflow-wrap:anywhere}
+.item strong{display:block}.meta{font-size:13px;margin-top:4px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}.actions button{font-size:13px;padding:8px}
+.stat{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.note{font-size:12px;line-height:1.5}.result{background:#101820;padding:12px;border-radius:9px;margin-top:10px;line-height:1.7}
+@media(max-width:480px){.row{grid-template-columns:1fr}.tabs{grid-template-columns:repeat(3,minmax(0,1fr))}.tabs button{font-size:12px;padding:9px 3px}}
+@media print{body{background:white;color:black}.tabs,form,button,.no-print{display:none!important}.panel,.item{background:white;color:black;border:1px solid #bbb;break-inside:avoid}.meta,.note{color:#444}header{background:white;color:black}}
 </style>
 </head>
 <body>
-<header><h1>🚧 Cantiere Pro</h1><p>Gestione cantieri, mezzi e rapporti</p></header>
+<header><h1>🚧 Cantiere Pro</h1><p>Gestione cantieri, mezzi, carburante e calcoli</p></header>
 <main>
-<div class="tabs">
+<nav class="tabs no-print">
 <button class="active" data-tab="cantieri">Cantieri</button>
-<button data-tab="mezzi">Mezzi</button>
-<button data-tab="rapporti">Rapporti / ore</button>
-<button data-tab="pendenze">Pendenze</button>
+<button data-tab="mezzi">Mezzi e ore</button>
+<button data-tab="rapporti">Rapporti</button>
+<button data-tab="cisterne">Cisterne</button>
+<button data-tab="calcoli">Calcoli</button>
+<button data-tab="manutenzione">Manutenzione</button>
+<button data-tab="archivio">Statistiche</button>
 <button data-tab="backup">Backup</button>
-</div>
+</nav>
 
-<div id="cantieri" class="view">
-<section class="panel">
-<h2>Aggiungi cantiere</h2>
+<section id="cantieri" class="view">
+<div class="panel"><h2>Nuovo cantiere</h2>
 <form id="siteForm">
-<label for="siteCode">Codice cantiere *</label><input id="siteCode" required placeholder="Es. C-2026-01">
-<label for="siteName">Nome / descrizione</label><input id="siteName" placeholder="Es. Scavo strada">
-<label for="sitePlace">Località</label><input id="sitePlace" placeholder="Es. Lugano">
+<label>Codice cantiere *</label><input id="siteCode" required placeholder="Es. C-2026-01">
+<label>Nome / descrizione</label><input id="siteName">
+<label>Località / indirizzo</label><input id="sitePlace">
+<label>Note</label><textarea id="siteNotes"></textarea>
 <button class="primary">Salva cantiere</button>
-</form></section>
-<section class="panel"><h2>Elenco cantieri</h2><div id="siteList" class="empty">Nessun cantiere inserito.</div></section>
-</div>
+</form></div>
+<div class="panel"><h2>Elenco cantieri</h2><div id="siteList"></div></div>
+</section>
 
-<div id="mezzi" class="view hidden">
-<section class="panel"><h2>Aggiungi mezzo</h2>
+<section id="mezzi" class="view" hidden>
+<div class="panel"><h2>Aggiungi mezzo</h2>
 <form id="machineForm">
-<label for="machineName">Nome / modello *</label><input id="machineName" required placeholder="Es. Hitachi 350 LCN">
-<label for="machineCode">Codice o numero identificativo</label><input id="machineCode" placeholder="Es. ESC-03">
+<label>Nome / modello *</label><input id="machineName" required placeholder="Es. Hitachi 350 LCN">
+<label>Codice mezzo</label><input id="machineCode">
+<label>Tipo</label><select id="machineType"><option>Escavatore</option><option>Camion</option><option>Pala</option><option>Rullo</option><option>Furgone</option><option>Altro</option></select>
+<div class="row"><div><label>Capacità cassone (m³)</label><input id="machineCapacity" type="number" min="0" step=".1"></div><div><label>Portata (tonnellate)</label><input id="machinePayload" type="number" min="0" step=".1"></div></div>
+<label>Consumo indicativo (litri/ora)</label><input id="machineConsumption" type="number" min="0" step=".1">
 <button class="primary">Salva mezzo</button>
-</form></section>
-<section class="panel"><h2>Elenco mezzi</h2><div id="machineList" class="empty">Nessun mezzo inserito.</div></section>
-</div>
+</form></div>
+<div class="panel"><h2>Elenco mezzi</h2><div id="machineList"></div></div>
+</section>
 
-<div id="rapporti" class="view hidden">
-<section class="panel"><h2>Registra ore di utilizzo</h2>
+<section id="rapporti" class="view" hidden>
+<div class="panel"><h2>Registra ore di utilizzo</h2>
 <form id="reportForm">
-<label for="reportDate">Data *</label><input id="reportDate" type="date" required>
-<label for="reportSite">Cantiere *</label><select id="reportSite" required><option value="">Prima aggiungi un cantiere</option></select>
-<label for="reportMachine">Mezzo *</label><select id="reportMachine" required><option value="">Prima aggiungi un mezzo</option></select>
-<div class="row"><div><label for="reportHours">Ore utilizzate *</label><input id="reportHours" type="number" min="0.25" max="24" step="0.25" required placeholder="Es. 7.5"></div><div><label for="reportStart">Nota (facoltativa)</label><input id="reportStart" placeholder="Es. carico camion"></div></div>
-<label for="reportNotes">Note del rapporto</label><textarea id="reportNotes" placeholder="Lavori svolti, eventuali osservazioni..."></textarea>
+<label>Data *</label><input id="reportDate" type="date" required>
+<label>Cantiere *</label><select id="reportSite" required></select>
+<label>Mezzo *</label><select id="reportMachine" required></select>
+<div class="row"><div><label>Ore utilizzate *</label><input id="reportHours" type="number" min=".25" max="24" step=".25" required></div><div><label>Attività</label><input id="reportActivity" placeholder="Es. carico camion"></div></div>
+<label>Note</label><textarea id="reportNotes"></textarea>
 <button class="primary">Salva rapporto</button>
-</form></section>
-<section class="panel"><h2>Archivio rapporti</h2>
-<label for="filterSite">Filtra per codice cantiere</label><select id="filterSite"><option value="">Tutti i cantieri</option></select>
-<div id="hoursSummary"></div><div id="reportList" class="empty">Nessun rapporto registrato.</div>
+</form></div>
+<div class="panel"><h2>Archivio rapporti</h2>
+<div class="row"><div><label>Cantiere</label><select id="filterSite"></select></div><div><label>Dal</label><input id="filterFrom" type="date"></div></div>
+<label>Al</label><input id="filterTo" type="date">
+<div id="hoursSummary"></div><div id="reportList"></div>
+</div></section>
+
+<section id="cisterne" class="view" hidden>
+<div class="panel"><h2>Registra una cisterna</h2>
+<form id="tankForm">
+<label>Nome / numero *</label><input id="tankName" required placeholder="Es. Cisterna 1">
+<div class="row"><div><label>Capacità totale (litri) *</label><input id="tankCapacity" type="number" min="1" step="1" required></div><div><label>Giacenza iniziale (litri)</label><input id="tankInitial" type="number" min="0" step=".1" value="0" required></div></div>
+<label>Tipo carburante</label><select id="tankFuel"><option>Diesel</option><option>Benzina</option><option>AdBlue</option><option>Altro</option></select>
+<button class="primary">Salva cisterna</button>
+</form></div>
+<div class="panel"><h2>Movimento carburante</h2>
+<p class="note">Un ordine non aumenta la giacenza. Registra una consegna soltanto quando il carburante è arrivato. I prelievi vengono sottratti dallo stock.</p>
+<form id="fuelForm">
+<label>Cisterna *</label><select id="fuelTank" required></select>
+<label>Movimento *</label><select id="fuelType"><option value="ordine">Ordine effettuato</option><option value="consegna">Consegna ricevuta</option><option value="prelievo">Prelievo / rifornimento</option></select>
+<label>Data *</label><input id="fuelDate" type="date" required>
+<label>Quantità (litri) *</label><input id="fuelAmount" type="number" min=".1" step=".1" required>
+<label>Mezzo rifornito (facoltativo)</label><select id="fuelMachine"></select>
+<div class="row"><div><label>Costo totale CHF</label><input id="fuelCost" type="number" min="0" step=".01"></div><div><label>Numero ordine / riferimento</label><input id="fuelRef"></div></div>
+<label>Note</label><textarea id="fuelNotes"></textarea>
+<button class="primary">Registra movimento</button>
+</form></div>
+<div class="panel"><h2>Giacenze e movimenti</h2><div id="tankList"></div><div id="fuelList"></div></div>
 </section>
 
+<section id="calcoli" class="view" hidden>
+<div class="panel"><h2>Calcoli da cantiere</h2>
+<label>Tipo di calcolo</label>
+<select id="calcType">
+<option value="slope">Pendenza, dislivello e distanza</option>
+<option value="earth">Scavo / riporto rettangolare</option>
+<option value="trap">Volume sezione trapezoidale</option>
+<option value="truck">Camion: viaggi necessari</option>
+<option value="pipe">Tubo: pendenza e volume interno</option>
+<option value="concrete">Calcestruzzo / soletta</option>
+<option value="density">Volume e peso materiale</option>
+<option value="percent">Percentuale e proporzione</option>
+<option value="scale">Scala disegno</option>
+<option value="fuel">Consumo e costo carburante</option>
+<option value="units">Conversioni unità</option>
+</select>
+<div id="calcFields"></div>
+<button class="primary" id="calculateBtn" type="button">Calcola</button>
+<div id="calcResult" class="result" aria-live="polite">Inserisci i valori e premi Calcola.</div>
+<p class="note">I risultati sono stime matematiche. Per quote, pendenze, stabilità degli scavi, portate e strutture, verifica sempre progetto, condizioni del terreno e prescrizioni applicabili.</p>
 </div>
-<p class="note">Versione iniziale. Salva i dati sul dispositivo/browser che stai usando. Esporta regolarmente un backup per non perderli.</p>
+<div class="panel"><h2>Tabella materiali modificabile</h2>
+<p class="note">Densità indicative: cambiano in base a umidità, granulometria, compattazione e provenienza. Verifica i valori con il fornitore o il progetto.</p>
+<form id="materialForm">
+<label>Materiale *</label><input id="matName" required placeholder="Es. ghiaia">
+<div class="row"><div><label>Densità (t/m³)</label><input id="matDensity" type="number" min=".01" step=".01" required></div><div><label>Fattore volume sciolto (x)</label><input id="matFactor" type="number" min=".1" step=".01" value="1.2" required></div></div>
+<button class="primary">Aggiungi materiale</button>
+</form><div id="materialList"></div>
+</div>
+</section>
+
+<section id="manutenzione" class="view" hidden>
+<div class="panel"><h2>Manutenzione e controlli</h2>
+<form id="maintForm">
+<label>Mezzo *</label><select id="maintMachine" required></select>
+<label>Tipo *</label><select id="maintType"><option>Manutenzione programmata</option><option>Riparazione</option><option>Controllo giornaliero</option><option>Cambio olio</option><option>Filtri</option><option>Altro</option></select>
+<div class="row"><div><label>Data intervento *</label><input id="maintDate" type="date" required></div><div><label>Prossima scadenza</label><input id="maintDue" type="date"></div></div>
+<div class="row"><div><label>Ore macchina</label><input id="maintHours" type="number" min="0" step=".1"></div><div><label>Costo CHF</label><input id="maintCost" type="number" min="0" step=".01"></div></div>
+<label>Descrizione / lavori svolti</label><textarea id="maintNotes"></textarea>
+<button class="primary">Salva intervento</button>
+</form></div>
+<div class="panel"><h2>Storico manutenzioni</h2><div id="maintList"></div></div>
+</section>
+
+<section id="archivio" class="view" hidden>
+<div class="panel"><h2>Statistiche ore</h2>
+<div class="row"><div><label>Dal</label><input id="statsFrom" type="date"></div><div><label>Al</label><input id="statsTo" type="date"></div></div>
+<button class="primary" id="statsBtn" type="button">Aggiorna statistiche</button>
+<div id="statsResults"></div>
+</div>
+<div class="panel"><h2>Archivio completo</h2><p class="note">Stampa o salva in PDF la pagina attualmente visibile usando la funzione di stampa del browser. Esporta i rapporti in CSV dalla sezione rapporti.</p><button type="button" id="printBtn">Stampa / salva PDF</button></div>
+</section>
+
+<section id="backup" class="view" hidden>
+<div class="panel"><h2>Backup e ripristino</h2>
+<p>Esporta tutti i dati registrati nell'app, comprese cisterne, movimenti, manutenzioni, materiali e calcoli salvati.</p>
+<button class="primary" id="exportBtn" type="button">Esporta backup completo JSON</button>
+<label>Ripristina da un backup JSON</label><input id="importFile" type="file" accept=".json,application/json">
+<button class="primary" id="csvBtn" type="button">Esporta rapporti CSV</button>
+<p class="note">Il ripristino sostituisce i dati correnti dopo conferma. I dati restano nel browser/dispositivo e non si sincronizzano automaticamente tra telefoni. Conserva una copia del backup altrove.</p>
+<div id="storageInfo" class="result"></div>
+</div></section>
+
+<p class="note">Cantiere Pro — dati salvati localmente nel browser. Per la modalità offline completa e installabile può essere necessario mantenere aggiornati anche i file manifest e service worker del progetto.</p>
 </main>
-
-<div id="pendenze" class="view hidden">
-<section class="panel">
-<h2>Calcolatore pendenze e scarpate</h2>
-<p class="note">Inserisci la profondità verticale e il rapporto orizzontale:verticale (H:V). Per esempio, 1:2 significa 1 metro in orizzontale ogni 2 metri in verticale.</p>
-<label for="slopeDepth">Profondità / altezza verticale (metri)</label>
-<input id="slopeDepth" type="number" min="0" step="0.01" value="3" placeholder="Es. 3">
-<div class="row">
-<div><label for="slopeH">Parte orizzontale H</label><input id="slopeH" type="number" min="0" step="0.01" value="1"></div>
-<div><label for="slopeV">Parte verticale V</label><input id="slopeV" type="number" min="0.01" step="0.01" value="1"></div>
-</div>
-<div class="row">
-<div><label for="slopePreset">Rapporto rapido</label><select id="slopePreset"><option value="1,1">1:1</option><option value="1,2">1:2</option><option value="2,1">2:1</option><option value="custom">Personalizzato</option></select></div>
-<div><label for="slopeUnit">Unità risultati</label><input id="slopeUnit" value="metri" readonly></div>
-</div>
-<div id="slopeResults" class="item" aria-live="polite"></div>
-<div style="margin-top:14px">
-<svg id="slopeDrawing" viewBox="0 0 320 190" width="100%" role="img" aria-label="Schema della scarpata">
-<path d="M35 25 V145 H275" fill="none" stroke="#b5c2cd" stroke-width="2"/>
-<path id="slopeTriangle" d="M35 25 L35 145 L155 145 Z" fill="#f0a43a" fill-opacity=".18" stroke="#f0a43a" stroke-width="3"/>
-<text x="43" y="85" fill="#f4f7fa" font-size="12">Verticale</text>
-<text x="90" y="165" fill="#f4f7fa" font-size="12">Orizzontale</text>
-<text id="slopeLabel" x="65" y="105" fill="#f4f7fa" font-size="12">1:1</text>
-</svg>
-</div>
-<p class="note">Calcolo geometrico teorico. Verifica sempre le indicazioni di progetto e le condizioni del terreno prima di eseguire uno scavo.</p>
-</section>
-</div>
-
-<div id="backup" class="view hidden">
-<section class="panel">
-<h2>Backup e ripristino</h2>
-<p>Qui puoi salvare una copia dei tuoi cantieri, mezzi e rapporti, oppure recuperare una copia precedente.</p>
-<p class="note"><strong>Esporta backup:</strong> crea un file JSON da conservare nella cartella Download o copiare su Google Drive.</p>
-<button id="exportBtn" class="primary">Esporta backup JSON</button>
-<label for="importFile">Ripristina da un file backup JSON</label>
-<input id="importFile" type="file" accept=".json,application/json">
-<p class="note">Attenzione: ripristinare un backup sostituisce i dati attualmente presenti nell'app. Conserva il file in un posto sicuro. I dati non si sincronizzano automaticamente tra dispositivi.</p>
-</section>
-</div>
-
 <script>
+'use strict';
 const KEY='cantiereProData_v1';
-let db={sites:[],machines:[],reports:[]};
-try{const saved=localStorage.getItem(KEY);if(saved){const parsed=JSON.parse(saved);db={...db,...parsed}}}catch(e){}
 const $=id=>document.getElementById(id);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
-function dateToday(){return new Date().toLocaleDateString('en-CA')}
-$('reportDate').value=dateToday();
-document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('hidden',v.id!==b.dataset.tab));render()}));
-$('siteForm').addEventListener('submit',e=>{e.preventDefault();const code=$('siteCode').value.trim();if(db.sites.some(s=>s.code.toLowerCase()===code.toLowerCase()))return alert('Questo codice cantiere esiste già.');db.sites.push({id:uid(),code,name:$('siteName').value.trim(),place:$('sitePlace').value.trim()});e.target.reset();save()});
-$('machineForm').addEventListener('submit',e=>{e.preventDefault();db.machines.push({id:uid(),name:$('machineName').value.trim(),code:$('machineCode').value.trim()});e.target.reset();save()});
-$('reportForm').addEventListener('submit',e=>{e.preventDefault();if(!db.sites.length||!db.machines.length)return alert('Aggiungi prima almeno un cantiere e un mezzo.');db.reports.push({id:uid(),date:$('reportDate').value,siteId:$('reportSite').value,machineId:$('reportMachine').value,hours:Number($('reportHours').value),activity:$('reportStart').value.trim(),notes:$('reportNotes').value.trim()});const d=$('reportDate').value;e.target.reset();$('reportDate').value=d;save()});
-$('filterSite').addEventListener('change',renderReports);
-function siteName(id){const s=db.sites.find(x=>x.id===id);return s?s.code+(s.name?' — '+s.name:''):'Cantiere eliminato'}
-function machineName(id){const m=db.machines.find(x=>x.id===id);return m?m.name+(m.code?' ('+m.code+')':''):'Mezzo eliminato'}
-function render(){renderSites();renderMachines();fillSelects();renderReports()}
-function renderSites(){$('siteList').innerHTML=db.sites.length?db.sites.map(s=>`<div class="item"><strong>${esc(s.code)}${s.name?' — '+esc(s.name):''}</strong><div class="meta">${esc(s.place||'Località non indicata')}</div><div class="item-actions"><button class="danger" data-delete-site="${s.id}">Elimina cantiere</button></div></div>`).join(''):'<div class="empty">Nessun cantiere inserito.</div>';document.querySelectorAll('[data-delete-site]').forEach(b=>b.onclick=()=>{const id=b.dataset.deleteSite;if(confirm('Eliminare il cantiere? I rapporti già salvati resteranno nell’archivio.')){db.sites=db.sites.filter(s=>s.id!==id);save()}})}
-function renderMachines(){$('machineList').innerHTML=db.machines.length?db.machines.map(m=>`<div class="item"><strong>${esc(m.name)}</strong><div class="meta">${esc(m.code||'Codice non indicato')}</div><div class="item-actions"><button class="danger" data-delete-machine="${m.id}">Elimina mezzo</button></div></div>`).join(''):'<div class="empty">Nessun mezzo inserito.</div>';document.querySelectorAll('[data-delete-machine]').forEach(b=>b.onclick=()=>{const id=b.dataset.deleteMachine;if(confirm('Eliminare il mezzo? I rapporti già salvati resteranno nell’archivio.')){db.machines=db.machines.filter(m=>m.id!==id);save()}})}
-function fillSelects(){const oldSite=$('reportSite').value,oldMachine=$('reportMachine').value,oldFilter=$('filterSite').value;const opts=(arr,labelFn)=>arr.map(x=>`<option value="${x.id}">${esc(labelFn(x))}</option>`).join('');$('reportSite').innerHTML='<option value="">Seleziona cantiere</option>'+opts(db.sites,s=>s.code+(s.name?' — '+s.name:''));$('reportMachine').innerHTML='<option value="">Seleziona mezzo</option>'+opts(db.machines,m=>m.name+(m.code?' ('+m.code+')':''));$('filterSite').innerHTML='<option value="">Tutti i cantieri</option>'+opts(db.sites,s=>s.code+(s.name?' — '+s.name:''));if(db.sites.some(s=>s.id===oldSite))$('reportSite').value=oldSite;if(db.machines.some(m=>m.id===oldMachine))$('reportMachine').value=oldMachine;if(db.sites.some(s=>s.id===oldFilter))$('filterSite').value=oldFilter}
-function renderReports(){const filter=$('filterSite').value;const arr=db.reports.filter(r=>!filter||r.siteId===filter).sort((a,b)=>b.date.localeCompare(a.date));const total=arr.reduce((sum,r)=>sum+(Number(r.hours)||0),0);const byMachine={};arr.forEach(r=>byMachine[r.machineId]=(byMachine[r.machineId]||0)+Number(r.hours||0));$('hoursSummary').innerHTML=`<div class="stat"><span>Rapporti visualizzati</span><strong>${arr.length}</strong></div><div class="stat"><span>Totale ore</span><strong>${total.toLocaleString('it-CH')} h</strong></div>`+Object.entries(byMachine).map(([id,h])=>`<div class="stat"><span>${esc(machineName(id))}</span><strong>${h.toLocaleString('it-CH')} h</strong></div>`).join('');$('reportList').innerHTML=arr.length?arr.map(r=>`<div class="item"><strong>${esc(r.date)} · ${esc(r.hours)} ore</strong><div class="meta">Cantiere: ${esc(siteName(r.siteId))}</div><div class="meta">Mezzo: ${esc(machineName(r.machineId))}</div>${r.activity?`<p>${esc(r.activity)}</p>`:''}${r.notes?`<p>${esc(r.notes)}</p>`:''}<div class="item-actions"><button class="danger" data-delete-report="${r.id}">Elimina rapporto</button></div></div>`).join(''):'<div class="empty">Nessun rapporto per questo filtro.</div>';document.querySelectorAll('[data-delete-report]').forEach(b=>b.onclick=()=>{if(confirm('Eliminare questo rapporto?')){db.reports=db.reports.filter(r=>r.id!==b.dataset.deleteReport);save()}})}
-$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='backup-cantiere-pro-'+dateToday()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)});
-$('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.sites)||!Array.isArray(data.machines)||!Array.isArray(data.reports))throw new Error();if(confirm('Importare il backup? I dati attuali verranno sostituiti.')){db=data;save();alert('Backup ripristinato.')}}catch(err){alert('File backup non valido.')}e.target.value=''});
-render();
-
-function calculateSlope(){
- const depth=Number($('slopeDepth').value), h=Number($('slopeH').value), v=Number($('slopeV').value);
- const out=$('slopeResults');
- if(!(depth>0)||!(h>=0)||!(v>0)){out.innerHTML='<span class="meta">Inserisci una profondità positiva e un rapporto valido.</span>';return}
- const horizontal=depth*h/v, diagonal=Math.hypot(depth,horizontal);
- const fmt=n=>n.toLocaleString('it-CH',{minimumFractionDigits:2,maximumFractionDigits:2});
- out.innerHTML=`<div class="stat"><span>Sviluppo orizzontale</span><strong>${fmt(horizontal)} m</strong></div><div class="stat"><span>Lunghezza inclinata</span><strong>${fmt(diagonal)} m</strong></div><div class="stat"><span>Rapporto H:V</span><strong>${fmt(h)} : ${fmt(v)}</strong></div>`;
- const x0=35,y0=25,yb=145, maxW=210, maxH=120;
- const scale=Math.min(maxH/depth, maxW/Math.max(horizontal,0.001));
- const dx=Math.max(0,Math.min(maxW,horizontal*scale)), dy=Math.max(0,Math.min(maxH,depth*scale));
- $('slopeTriangle').setAttribute('d',`M35 ${yb-dy} L35 ${yb} L${35+dx} ${yb} Z`);
- $('slopeLabel').setAttribute('x',String(42+Math.min(dx,80)/2));
- $('slopeLabel').setAttribute('y',String(yb-dy/2));
- $('slopeLabel').textContent=`${h}:${v}`;
-}
-['slopeDepth','slopeH','slopeV'].forEach(id=>$(id).addEventListener('input',calculateSlope));
-$('slopePreset').addEventListener('change',e=>{if(e.target.value!=='custom'){const [h,v]=e.target.value.split(',').map(Number);$('slopeH').value=h;$('slopeV').value=v;calculateSlope()}});
-
-calculateSlope();
-
-// Registra il servizio offline quando il sito è pubblicato su HTTPS.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log('Service worker non registrato:', err));
-  });
-}
-</script>
-</body></html>
+const num=id=>Number($(id).value);
+const fmt=n=>Number(n||0).toLocaleString('it-CH',{maximumFractionDigits:2});
+const defaults={sites:[],machines:[],reports:[],tanks:[],fuel:[],maintenance:[],materials:[{id:'sand',name:'Sabbia (indicativa)',density:1.6,factor:1.2},{id:'gravel',name:'Ghiaia (indicativa)',density:1.8,factor:1.2},{id:'soil',name:'Terra (indicativa)',density:1.5,factor:1.25},{id:'concrete',name:'Calcestruzzo',density:2.4,factor:1}],calculations:[]};
+let db;
+try{db={...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')};for(const k of Object.keys(defaults))if(!Array.isArray(db[k]))db[k]=defaults[k].slice()}catch(e){db=JSON.parse(JSON.stringify(defaults))}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db));render()}catch(e){alert('Spazio di archiviazione insufficiente. Esporta un backup e riduci i dati salvati.');}}
+function siteName(id){const s=db.sites.find(x=>x.id===id);return s?(s.code+(s.name?' — '+s.name:'')):'Cantiere non disponibile'}
+function machineName(id){const m=db.machines.find(x=>x.id===id);return m?(m.name+(m.code?' ('+m.code+')':'')):'Mezzo non disponibile'}
+function tankStock(id){const t=db.tanks.find(x=>x.id===id);if(!t)return 0;return Number(t.initial||0)+db.fuel.filter(x=>x.tankId===id&&x.type==='consegna').reduce((a,x)=>a+Number(x.amount),0)-db.fuel.filter(x=>x.tankId===id&&x.type==='prelievo').reduce((a,x)=>a+Number(x.amount),0)}
+function opts(arr,label,placeholder='Seleziona'){return '<option value="">'+placeholder+'</option>'+arr.map(x=>'<option value="'+esc(x.id)+'">'+esc(label(x))+'</option>').join('')}
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==b.dataset.tab);render()}));
+['reportDate','fuelDate','maintDate'].forEach(id=>$(id).value=today());
+$('siteForm').addEventListener('submit',e=>{e.preventDefault();const code=$('siteCode').value.trim();if(db.sites.some(s=>s.code.toLowerCase()===code.toLowerCase()))return alert('Codice cantiere già esistente.');db.sites.push({id:uid(),code,name:$('siteName').value.trim(),place:$('sitePlace').value.trim(),notes:$('siteNotes').value.trim()});e.target.reset();save()});
+$('machineForm').addEventListener('submit',e=>{e.preventDefault();db.machines.push({id:uid(),name:$('machineName').value.trim(),code:$('machineCode').value.trim(),type:$('machineType').value,capacity:num('machineCapacity'),payload:num('machinePayload'),consumption:num('machineConsumption')});e.target.reset();save()});
+$('reportForm').addEventListener('submit',e=>{e.preventDefault();if(!db.sites.length||!db.machines.length)return alert('Aggiungi prima un cantiere e un mezzo.');db.reports.push({id:uid(),date:$('reportDate').value,siteId:$('reportSite').value,machineId:$('reportMachine').value,hours:num('reportHours'),activity:$('reportActivity').value.trim(),notes:$('reportNotes').value.trim()});e.target.reset();$('reportDate').value=today();save()});
+$('tankForm').addEventListener('submit',e=>{e.preventDefault();const cap=num('tankCapacity'),initial=num('tankInitial');if(initial>cap)return alert('La giacenza iniziale non può superare la capacità.');db.tanks.push({id:uid(),name:$('tankName').value.trim(),capacity:cap,initial,fuel:$('tankFuel').value});e.target.reset();$('tankInitial').value='0';save()});
+$('fuelForm').addEventListener('submit',e=>{e.preventDefault();const id=$('fuelTank').value,type=$('fuelType').value,amount=num('fuelAmount'),t=db.tanks.find(x=>x.id===id);if(!t)return alert('Seleziona una cisterna.');if(amount<=0)return alert('Inserisci una quantità positiva.');const stock=tankStock(id);if(type==='consegna'&&stock+amount>Number(t.capacity)+0.0001)return alert('Consegna non registrata: supererebbe la capacità della cisterna.');if(type==='prelievo'&&amount>stock+0.0001)return alert('Prelievo non registrato: carburante insufficiente.');db.fuel.push({id:uid(),tankId:id,type,date:$('fuelDate').value,amount,machineId:$('fuelMachine').value,cost:num('fuelCost'),ref:$('fuelRef').value.trim(),notes:$('fuelNotes').value.trim()});e.target.reset();$('fuelDate').value=today();save()});
+$('maintForm').addEventListener('submit',e=>{e.preventDefault();db.maintenance.push({id:uid(),machineId:$('maintMachine').value,type:$('maintType').value,date:$('maintDate').value,due:$('maintDue').value,hours:num('maintHours'),cost:num('maintCost'),notes:$('maintNotes').value.trim()});e.target.reset();$('maintDate').value=today();save()});
+$('materialForm').addEventListener('submit',e=>{e.preventDefault();db.materials.push({id:uid(),name:$('matName').value.trim(),density:num('matDensity'),factor:num('matFactor')});e.target.reset();save()});
+function del(kind,id){if(!confirm('Vuoi eliminare questo elemento?'))return;db[kind]=db[kind].filter(x=>x.id!==id);save()}
+function render(){
+$('siteList').innerHTML=db.sites.length?db.sites.map(s=>`<div class="item"><strong>${esc(s.code)}${s.name?' — '+esc(s.name):''}</strong><div class="meta">${esc(s.place||'Località non indicata')} ${s.notes?'· '+esc(s.notes):''}</div><div class="actions"><button class="danger" onclick="del('sites','${s.id}')">Elimina</button></div></div>`).join(''):'<p class="note">Nessun cantiere inserito.</p>';
+$('machineList').innerHTML=db.machines.length?db.machines.map(m=>`<div class="item"><strong>${esc(m.name)}${m.code?' · '+esc(m.code):''}</strong><div class="meta">${esc(m.type||'Mezzo')} · Ore registrate: ${fmt(db.reports.filter(r=>r.machineId===m.id).reduce((a,r)=>a+Number(r.hours),0))} ${m.capacity?'· Cassone '+fmt(m.capacity)+' m³':''} ${m.payload?'· Portata '+fmt(m.payload)+' t':''} ${m.consumption?'· Consumo '+fmt(m.consumption)+' l/h':''}</div><div class="actions"><button class="danger" onclick="del('machines','${m.id}')">Elimina</button></div></div>`).join(''):'<p class="note">Nessun mezzo inserito.</p>';
+$('reportSite').innerHTML=opts(db.sites,s=>s.code+(s.name?' — '+s.name:''));$('filterSite').innerHTML='<option value="">Tutti i cantieri</option>'+db.sites.map(s=>`<option value="${esc(s.id)}">${esc(s.code)}</option>`).join('');
+$('reportMachine').innerHTML=opts(db.machines,m=>m.name+(m.code?' ('+m.code+')':''));$('fuelMachine').innerHTML=opts(db.machines,m=>m.name+(m.code?' ('+m.code+')':''),'Nessun mezzo associato');$('maintMachine').innerHTML=opts(db.machines,m=>m.name+(m.code?' ('+m.code+')':''));$('fuelTank').innerHTML=opts(db.tanks,t=>t.name+' — '+fmt(tankStock(t.id))+' L');
+$('tankList').innerHTML=db.tanks.length?db.tanks.map(t=>`<div class="item"><strong>${esc(t.name)} · ${esc(t.fuel)}</strong><div class="meta">Giacenza: ${fmt(tankStock(t.id))} L / ${fmt(t.capacity)} L · Spazio disponibile: ${fmt(t.capacity-tankStock(t.id))} L</div><div style="background:#101820;border-radius:6px;height:8px;margin-top:8px"><div style="height:8px;border-radius:6px;background:var(--accent);width:${Math.max(0,Math.min(100,tankStock(t.id)/t.capacity*100))}%"></div></div><div class="actions"><button class="danger" onclick="del('tanks','${t.id}')">Elimina cisterna</button></div></div>`).join(''):'<p class="note">Nessuna cisterna inserita.</p>';
+$('fuelList').innerHTML=db.fuel.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(f=>`<div class="item"><strong>${esc(f.date)} · ${esc(f.type.toUpperCase())} · ${fmt(f.amount)} L</strong><div class="meta">${esc(db.tanks.find(t=>t.id===f.tankId)?.name||'Cisterna eliminata')} ${f.machineId?'· '+esc(machineName(f.machineId)):''} ${f.cost?'· CHF '+fmt(f.cost):''} ${f.ref?'· '+esc(f.ref):''}</div><div>${esc(f.notes||'')}</div><div class="actions"><button class="danger" onclick="del('fuel','${f.id}')">El
