@@ -43,67 +43,130 @@ $('fuelList').innerHTML=db.fuel.slice().sort((a,b)=>b.date.localeCompare(a.date)
 renderReports();$('maintList').innerHTML=db.maintenance.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)}</strong><div class="meta">${esc(mname(x.machineId))} ${x.due?'· Scadenza '+esc(x.due):''} ${x.hours?'· '+fmt(x.hours)+' ore':''} ${x.cost?'· CHF '+fmt(x.cost):''}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('maintenance','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessuna manutenzione.</p>';
 $('materialList').innerHTML=db.materials.map(x=>`<div class="item"><strong>${esc(x.name)}</strong><div class="meta">Densità ${fmt(x.density)} t/m³ · Fattore ${fmt(x.factor)}</div><div class="actions"><button onclick="del('materials','${x.id}')">Elimina</button></div></div>`).join('');
 $('calcSaved').innerHTML=db.calculations.map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.title)}</strong>${esc(x.result)}<div class="actions"><button onclick="del('calculations','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun calcolo salvato.</p>';stats();$('storageInfo').textContent=`Salvati: ${db.sites.length} cantieri, ${db.machines.length} mezzi, ${db.reports.length} rapporti, ${db.tanks.length} cisterne.`}
-const defs={slope:[['a','Distanza orizzontale (m)',10],['b','Dislivello (m)',.5]],earth:[['a','Lunghezza (m)',10],['b','Larghezza (m)',2],['c','Profondità (m)',1]],trap:[['a','Base inferiore (m)',2],['b','Base superiore (m)',4],['c','Altezza (m)',1],['d','Lunghezza (m)',10]],truck:[['a','Volume da trasportare (m³)',20],['b','Capacità camion (m³)',8]],pipe:[['a','Dislivello (cm)',20],['b','Lunghezza tubo (m)',10]],concrete:[['a','Lunghezza (m)',5],['b','Larghezza (m)',3],['c','Spessore (cm)',15]],density:[['a','Volume (m³)',5],['b','Densità (t/m³)',1.8]],percent:[['a','Valore di riferimento',100],['b','Percentuale (%)',15]],scale:[['a','Misura sul disegno (cm)',3],['b','Scala (es. 100 per 1:100)',100]],fuel:[['a','Ore di lavoro',8],['b','Consumo (L/ora)',20],['c','Prezzo CHF/L',1.8]],units:[['a','Metri da convertire',1]]};
-function calcFields(){ $('calcFields').innerHTML=defs[$('calcType').value].map(([id,label,value])=>`<label>${label}</label><input id="calc_${id}" type="number" step="any" value="${value}">`).join('')}
-$('calcType').onchange=()=>{calcFields();$('calcResult').textContent='Inserisci i valori e premi Calcola.'};
-$('calculateBtn').onclick=()=>{
-const v=id=>Number($('calc_'+id)?.value)||0;
-let result='',title=$('calcType').selectedOptions[0].text;
-switch($('calcType').value){
-case 'slope':result=`Pendenza: ${fmt(v('b')/v('a')*100)}% · Angolo: ${fmt(Math.atan(v('b')/v('a'))*180/Math.PI)}°`;break;
-case 'earth':result=`Volume: ${fmt(v('a')*v('b')*v('c'))} m³`;break;
-case 'trap':result=`Volume: ${fmt((v('a')+v('b'))/2*v('c')*v('d'))} m³`;break;
-case 'truck':result=`Viaggi necessari: ${v('b')>0?Math.ceil(v('a')/v('b')):'capacità non valida'}`;break;
-case 'pipe':result=`Pendenza: ${v('b')>0?fmt(v('a')/100/v('b')*100):'—'}% · Dislivello ${fmt(v('a'))} cm`;break;
-case 'concrete':result=`Calcestruzzo: ${fmt(v('a')*v('b')*v('c')/100)} m³`;break;
-case 'density':result=`Peso indicativo: ${fmt(v('a')*v('b'))} t`;break;
-case 'percent':result=`${fmt(v('b'))}% di ${fmt(v('a'))} = ${fmt(v('a')*v('b')/100)}`;break;
-case 'scale':result=`Misura reale: ${fmt(v('a')*v('b')/100)} m`;break;
-case 'fuel':result=`Carburante: ${fmt(v('a')*v('b'))} L · Costo: CHF ${fmt(v('a')*v('b')*v('c'))}`;break;
-case 'units':result=`${fmt(v('a'))} m = ${fmt(v('a')*100)} cm = ${fmt(v('a')*1000)} mm`;break;
-}
-if ($('calcType').value === 'slope') {
-  const h = Math.max(0, v('a'));
-  const z = Math.max(0, v('b'));
-  const pct = h > 0 ? z / h * 100 : 0;
-  const angle = Math.atan2(z, h) * 180 / Math.PI;
-  const ratio = z > 0 ? h / z : null;
-  const scale = Math.min(230 / Math.max(h, 0.1), 85 / Math.max(z, 0.1));
-  const x = 35 + h * scale;
-  const y = 115 - z * scale;
-  const ratios = [
-    [1,1],[2,1],[3,1],[4,1],[5,1],
-    [6,1],[8,1],[10,1],[1,2],[1,3],[1,4]
-  ];
-  const table = ratios.map(([rh,rv]) =>
-    `<tr><td>${rh}:${rv}</td><td>${fmt(rv/rh*100)}%</td><td>${fmt(Math.atan2(rv,rh)*180/Math.PI)}°</td></tr>`
-  ).join('');
 
-  $('calcResult').innerHTML =
-    `<strong>Pendenza: ${fmt(pct)}% · Angolo: ${fmt(angle)}°</strong>
-    <p>Rapporto orizzontale:verticale: ${
-      ratio === null ? 'verticale o dislivello nullo' : fmt(ratio)+':1'
-    }</p>
-    <svg viewBox="0 0 320 145" width="100%" role="img" aria-label="Grafico della pendenza">
+const defs={
+slope:[],
+earth:[['a','Lunghezza (m)',10],['b','Larghezza (m)',2],['c','Profondità (m)',1]],
+trap:[['a','Base inferiore (m)',2],['b','Base superiore (m)',4],['c','Altezza (m)',1],['d','Lunghezza (m)',10]],
+truck:[['a','Volume da trasportare (m³)',20],['b','Capacità camion (m³)',8]],
+pipe:[['a','Dislivello (cm)',20],['b','Lunghezza tubo (m)',10]],
+concrete:[['a','Lunghezza (m)',5],['b','Larghezza (m)',3],['c','Spessore (cm)',15]],
+density:[['a','Volume (m³)',5],['b','Densità (t/m³)',1.8]],
+percent:[['a','Valore di riferimento',100],['b','Percentuale (%)',15]],
+scale:[['a','Misura sul disegno (cm)',3],['b','Scala (es. 100 per 1:100)',100]],
+fuel:[['a','Ore di lavoro',8],['b','Consumo (L/ora)',20],['c','Prezzo CHF/L',1.8]],
+units:[['a','Metri da convertire',1]]
+};
+
+function calcFields(){
+  if($('calcType').value==='slope'){
+    $('calcFields').innerHTML=`
+      <label>Rapporto orizzontale : verticale</label>
+      <div class="row">
+        <div><label>Orizzontale</label><input id="slopeH" type="number" min="0.01" step="any" value="3"></div>
+        <div><label>Verticale</label><input id="slopeV" type="number" min="0.01" step="any" value="1"></div>
+      </div>
+      <label>Come vuoi calcolare?</label>
+      <select id="slopeMode">
+        <option value="depth">Inserisco la profondità → calcolo la distanza orizzontale</option>
+        <option value="horizontal">Inserisco la distanza orizzontale → calcolo la profondità</option>
+      </select>
+      <label id="slopeInputLabel">Profondità dello scavo (m)</label>
+      <input id="slopeInput" type="number" min="0" step="any" value="2.5">
+      <div class="note">Esempio: rapporto 3:1 significa 3 metri orizzontali per ogni metro verticale.</div>`;
+    $('slopeMode').onchange=()=>{
+      $('slopeInputLabel').textContent=$('slopeMode').value==='depth'
+        ?'Profondità dello scavo (m)'
+        :'Distanza orizzontale disponibile (m)';
+      updateSlope();
+    };
+    ['slopeH','slopeV','slopeInput'].forEach(id=>$(id).oninput=updateSlope);
+    updateSlope();
+    return;
+  }
+  $('calcFields').innerHTML=defs[$('calcType').value]
+    .map(([id,label,value])=>`<label>${label}</label><input id="calc_${id}" type="number" step="any" value="${value}">`).join('');
+}
+
+function updateSlope(){
+  const h=Number($('slopeH').value);
+  const v=Number($('slopeV').value);
+  const input=Number($('slopeInput').value);
+  const mode=$('slopeMode').value;
+
+  if(!Number.isFinite(h)||!Number.isFinite(v)||!Number.isFinite(input)||h<=0||v<=0||input<0){
+    $('calcResult').textContent='Inserisci valori validi. Il rapporto deve essere maggiore di zero.';
+    return;
+  }
+
+  const horizontal=mode==='depth'?input*h/v:input;
+  const depth=mode==='depth'?input:input*v/h;
+  const pct=v/h*100;
+  const angle=Math.atan2(v,h)*180/Math.PI;
+  const scale=Math.min(230/Math.max(horizontal,0.1),85/Math.max(depth,0.1));
+  const x=35+horizontal*scale;
+  const y=115-depth*scale;
+  const f=n=>fmt(n);
+
+  $('calcResult').innerHTML=`
+    <strong>Risultato pendenza ${f(h)}:${f(v)}</strong>
+    <p>Distanza orizzontale: <strong>${f(horizontal)} m</strong></p>
+    <p>Profondità: <strong>${f(depth)} m</strong></p>
+    <p>Pendenza: <strong>${f(pct)}%</strong></p>
+    <p>Angolo: <strong>${f(angle)}°</strong></p>
+    <svg viewBox="0 0 320 145" width="100%" role="img" aria-label="Sezione della scarpata">
       <path d="M35 15 V115 H295" fill="none" stroke="currentColor" stroke-width="1.5"/>
-      <path d="M35 115 L${x} ${y} L${x} 115 Z"
-        fill="#f0a43a" fill-opacity=".25" stroke="#f0a43a" stroke-width="2"/>
-      <path d="M35 115 L${x} ${y}" stroke="#f0a43a" stroke-width="3"/>
-      <text x="150" y="137" fill="currentColor" font-size="11" text-anchor="middle">Orizzontale: ${fmt(h)} m</text>
-      <text x="${Math.min(x+5,245)}" y="${Math.max(y-5,12)}" fill="currentColor" font-size="11">Dislivello: ${fmt(z)} m</text>
+      <path d="M35 115 L${x} ${y} L${x} 115 Z" fill="#f0a43a" fill-opacity=".25" stroke="#f0a43a" stroke-width="2"/>
+      <text x="${(35+x)/2}" y="${Math.max(12,y-8)}" fill="currentColor" font-size="11" text-anchor="middle">${f(depth)} m verticali</text>
+      <text x="${(35+x)/2}" y="137" fill="currentColor" font-size="11" text-anchor="middle">${f(horizontal)} m orizzontali</text>
     </svg>
-    <h3>Tabella dei rapporti</h3>
+    <p><strong>Confronto dei rapporti comuni</strong></p>
     <table style="width:100%;border-collapse:collapse;text-align:left">
       <tr><th>Rapporto H:V</th><th>Pendenza</th><th>Angolo</th></tr>
-      ${table}
-    </table>`;
-} else {
-  $('calcResult').textContent = result;
+      ${[[1,1],[2,1],[3,1],[4,1],[5,1],[6,1],[8,1],[10,1]].map(([a,b])=>`<tr><td>${a}:${b}</td><td>${f(b/a*100)}%</td><td>${f(Math.atan2(b,a)*180/Math.PI)}°</td></tr>`).join('')}
+    </table>
+    <p class="note">Verifica sempre la pendenza ammessa in base al terreno, al progetto e alle condizioni di sicurezza del cantiere.</p>`;
 }
-  
-db.calculations.push({id:uid(),date:today(),title,result});
-save();
+
+$('calcType').onchange=()=>{
+  calcFields();
+  $('calcResult').textContent='Inserisci i valori e premi Calcola.';
 };
+
+$('calculateBtn').onclick=()=>{
+  if($('calcType').value==='slope'){
+    updateSlope();
+    db.calculations.push({
+      id:uid(),
+      date:today(),
+      title:'Pendenza '+$('slopeH').value+':'+$('slopeV').value,
+      result:$('calcResult').innerText
+    });
+    save();
+    return;
+  }
+
+  const v=id=>Number($('calc_'+id)?.value)||0;
+  let result='',title=$('calcType').selectedOptions[0].text;
+
+  switch($('calcType').value){
+    case 'earth':result=`Volume: ${fmt(v('a')*v('b')*v('c'))} m³`;break;
+    case 'trap':result=`Volume: ${fmt((v('a')+v('b'))/2*v('c')*v('d'))} m³`;break;
+    case 'truck':result=`Viaggi necessari: ${v('b')>0?Math.ceil(v('a')/v('b')):'capacità non valida'}`;break;
+    case 'pipe':result=`Pendenza: ${v('b')>0?fmt(v('a')/100/v('b')*100):'—'}% · Dislivello ${fmt(v('a'))} cm`;break;
+    case 'concrete':result=`Calcestruzzo: ${fmt(v('a')*v('b')*v('c')/100)} m³`;break;
+    case 'density':result=`Peso indicativo: ${fmt(v('a')*v('b'))} t`;break;
+    case 'percent':result=`${fmt(v('b'))}% di ${fmt(v('a'))} = ${fmt(v('a')*v('b')/100)}`;break;
+    case 'scale':result=`Misura reale: ${fmt(v('a')*v('b')/100)} m`;break;
+    case 'fuel':result=`Carburante: ${fmt(v('a')*v('b'))} L · Costo: CHF ${fmt(v('a')*v('b')*v('c'))}`;break;
+    case 'units':result=`${fmt(v('a'))} m = ${fmt(v('a')*100)} cm = ${fmt(v('a')*1000)} mm`;break;
+  }
+
+  $('calcResult').textContent=result;
+  db.calculations.push({id:uid(),date:today(),title,result});
+  save();
+};
+  
 $('filterBtn').onclick=renderReports;
 function stats(){
 const from=$('statsFrom').value,to=$('statsTo').value;
