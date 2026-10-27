@@ -71,19 +71,23 @@ Venerdì: ..."></textarea>
   </div>
 </section>
       
-      <section id="carburante" class="view" hidden><div class="panel"><h2>Aggiungi cisterna</h2><form id="tankForm"><label>Nome *</label><input id="tankName" required><label>Carburante</label><select id="tankFuel"><option>Diesel</option><option>Benzina</option><option>AdBlue</option><option>Altro</option></select><div class="row"><div><label>Capacità L *</label><input id="tankCapacity" type="number" min="1" required></div><div><label>Giacenza iniziale L *</label><input id="tankInitial" type="number" min="0" value="0" required></div></div><button class="primary">Salva cisterna</button></form></div><div class="panel"><h2>Movimento carburante</h2><form id="fuelForm"><label>Cisterna *</label><select id="fuelTank" required></select><label>Movimento</label><select id="fuelType"><option value="ordine">Ordine effettuato</option><option value="consegna">Consegna ricevuta</option><option value="prelievo">Prelievo / rifornimento</option></select><label>Data *</label><input id="fuelDate" type="date" required><label>Litri *</label><input id="fuelAmount" type="number" min=".1" step=".1" required><label>Mezzo</label><select id="fuelMachine"></select><div class="row"><div><label>Costo CHF</label><input id="fuelCost" type="number" min="0" step=".01"></div><div><label>Riferimento</label><input id="fuelRef"></div></div><label>Note</label><textarea id="fuelNotes"></textarea><button class="primary">Registra movimento</button></form></div><div class="panel"><h2>Giacenze e storico</h2><div id="tankList"></div><div id="fuelList"></div></div></section>
-<section id="calcoli" class="view" hidden><div class="panel"><h2>Calcoli edili</h2><label>Tipo</label><select id="calcType"><option value="slope">Pendenza / dislivello</option><option value="earth">Volume scavo rettangolare</option><option value="trap">Volume trapezoidale</option><option value="truck">Viaggi camion</option><option value="pipe">Pendenza tubo</option><option value="concrete">Calcestruzzo</option><option value="density">Peso materiale</option><option value="percent">Percentuale</option><option value="scale">Scala disegno</option><option value="fuel">Consumo carburante</option><option value="units">Conversioni</option></select><div id="calcFields"></div><button class="primary" id="calculateBtn" type="button">Calcola</button><div id="calcResult" class="result">Inserisci i valori e premi Calcola.</div><p class="note">Valori indicativi: verifica sempre progetto e condizioni reali.</p></div><div class="panel"><h2>Tabella materiali</h2><form id="materialForm"><label>Materiale *</label><input id="matName" required><div class="row"><div><label>Densità t/m³</label><input id="matDensity" type="number" min=".01" step=".01" required></div><div><label>Fattore sciolto</label><input id="matFactor" type="number" min=".1" step=".01" value="1.2" required></div></div><button class="primary">Aggiungi materiale</button></form><div id="materialList"></div><h2 style="margin-top:14px">Calcoli salvati</h2><div id="calcSaved"></div></div></section>
-<section id="manutenzione" class="view" hidden><div class="panel"><h2>Manutenzioni e controlli</h2><form id="maintForm"><label>Mezzo *</label><select id="maintMachine" required></select><label>Tipo</label><select id="maintType"><option>Manutenzione programmata</option><option>Riparazione</option><option>Controllo giornaliero</option><option>Cambio olio</option><option>Filtri</option><option>Altro</option></select><div class="row"><div><label>Data *</label><input id="maintDate" type="date" required></div><div><label>Prossima scadenza</label><input id="maintDue" type="date"></div></div><div class="row"><div><label>Ore macchina</label><input id="maintHours" type="number" min="0" step=".1"></div><div><label>Costo CHF</label><input id="maintCost" type="number" min="0" step=".01"></div></div><label>Descrizione</label><textarea id="maintNotes"></textarea><button class="primary">Salva intervento</button></form></div><div class="panel"><h2>Storico</h2><div id="maintList"></div></div></section>
-<section id="statistiche" class="view" hidden><div class="panel"><h2>Statistiche ore</h2><div class="row"><div><label>Dal</label><input id="statsFrom" type="date"></div><div><label>Al</label><input id="statsTo" type="date"></div></div><button class="primary" id="statsBtn" type="button">Aggiorna</button><div id="statsResults"></div></div><div class="panel"><h2>Stampa / PDF</h2><button id="printBtn" type="button">Stampa / salva PDF</button></div></section>
-<section id="backup" class="view" hidden><div class="panel"><h2>Backup e ripristino</h2><button class="primary" id="exportBtn" type="button">Scarica backup completo JSON</button><label>Ripristina backup JSON</label><input id="importFile" type="file" accept=".json,application/json"><button class="primary" id="csvBtn" type="button">Esporta tutti i rapporti CSV</button><div id="storageInfo" class="result"></div><p class="note">I dati restano nel browser di questo dispositivo e non si sincronizzano automaticamente. Conserva una copia del backup.</p></div></section>
-<p class="note">Cantiere Pro · archiviazione locale. Esegui regolarmente un backup.</p></main>
-<script>
-'use strict';
-const KEY='cantiereProData_v1', $=id=>document.getElementById(id), uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-const today=()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}, esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), num=id=>Number($(id).value)||0, fmt=n=>Number(n||0).toLocaleString('it-CH',{maximumFractionDigits:2});
-const defaults={sites:[],machines:[],reports:[]
-bulletins:[],
-      ,tanks:[],fuel:[],maintenance:[],materials:[{id:'sand',name:'Sabbia',density:1.6,factor:1.2},{id:'gravel',name:'Ghiaia',density:1.8,factor:1.2},{id:'soil',name:'Terra',density:1.5,factor:1.25},{id:'concrete',name:'Calcestruzzo',density:2.4,factor:1}],calculations:[]};
+const defaults={
+  sites:[],
+  machines:[],
+  reports:[],
+  bulletins:[],
+  tanks:[],
+  fuel:[],
+  maintenance:[],
+  materials:[
+    {id:'sand',name:'Sabbia',density:1.6,factor:1.2},
+    {id:'gravel',name:'Ghiaia',density:1.8,factor:1.2},
+    {id:'soil',name:'Terra',density:1.5,factor:1.25},
+    {id:'concrete',name:'Calcestruzzo',density:2.4,factor:1}
+  ],
+  calculations:[]
+};
+      
 let db;try{db={...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')};Object.keys(defaults).forEach(k=>{if(!Array.isArray(db[k]))db[k]=defaults[k].slice()})}catch(e){db=JSON.parse(JSON.stringify(defaults))}
 function download(name,content,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));render()}catch(e){alert('Spazio insufficiente: scarica un backup.')}}function del(k,id){if(confirm('Eliminare questo elemento?')){db[k]=db[k].filter(x=>x.id!==id);save()}}
