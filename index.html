@@ -82,21 +82,105 @@ document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.quer
 $('siteForm').onsubmit=e=>{e.preventDefault();let code=$('siteCode').value.trim();if(db.sites.some(x=>x.code.toLowerCase()===code.toLowerCase()))return alert('Codice già esistente');db.sites.push({id:uid(),code,name:$('siteName').value.trim(),place:$('sitePlace').value.trim(),notes:$('siteNotes').value.trim()});e.target.reset();save()};
 $('machineForm').onsubmit=e=>{e.preventDefault();db.machines.push({id:uid(),name:$('machineName').value.trim(),code:$('machineCode').value.trim(),type:$('machineType').value,capacity:num('machineCapacity'),payload:num('machinePayload'),consumption:num('machineConsumption')});e.target.reset();save()};
 $('reportForm').onsubmit=e=>{e.preventDefault();if(!db.sites.length||!db.machines.length)return alert('Inserisci prima un cantiere e un mezzo');db.reports.push({id:uid(),date:$('reportDate').value,siteId:$('reportSite').value,machineId:$('reportMachine').value,hours:num('reportHours'),activity:$('reportActivity').value,notes:$('reportNotes').value});e.target.reset();$('reportDate').value=today();save()};
-$('tankForm').onsubmit=e=>{e.preventDefault();if(num('tankInitial')>num('tankCapacity'))return alert('La giacenza supera la capacità');db.tanks.push({id:uid(),name:$('tankName').value,fuel:$('tankFuel').value,capacity:num('tankCapacity'),initial:num('tankInitial')});e.target.reset();$('tankInitial').value=0;save()};
+
+$('bulletinForm').onsubmit=e=>{
+  e.preventDefault();
+
+  if(!db.sites.length||!db.machines.length){
+    return alert('Inserisci prima un cantiere e un mezzo');
+  }
+
+  const number=$('bulletinNumber').value.trim();
+  const from=$('bulletinFrom').value;
+  const to=$('bulletinTo').value;
+  const start=Number($('bulletinHourStart').value);
+  const end=Number($('bulletinHourEnd').value);
+
+  if(to<from){
+    return alert('La data finale non può precedere quella iniziale.');
+  }
+
+  if(end<start){
+    return alert('Il contaore finale non può essere inferiore a quello iniziale.');
+  }
+
+  if(db.bulletins.some(b=>(b.number||'').trim().toLowerCase()===number.toLowerCase())){
+    return alert('Questo numero di bollettino esiste già.');
+  }
+
+  db.bulletins.push({
+    id:uid(),
+    number,
+    operator:$('bulletinOperator').value.trim(),
+    from,
+    to,
+    siteId:$('bulletinSite').value,
+    machineId:$('bulletinMachine').value,
+    hourStart:start,
+    hourEnd:end,
+    hours:end-start,
+    work:$('bulletinWork').value.trim(),
+    notes:$('bulletinNotes').value.trim()
+  });
+
+  e.target.reset();
+  save();
+  alert('Bollettino salvato correttamente.');
+};
+ 
+ $('tankForm').onsubmit=e=>{e.preventDefault();if(num('tankInitial')>num('tankCapacity'))return alert('La giacenza supera la capacità');db.tanks.push({id:uid(),name:$('tankName').value,fuel:$('tankFuel').value,capacity:num('tankCapacity'),initial:num('tankInitial')});e.target.reset();$('tankInitial').value=0;save()};
 $('fuelForm').onsubmit=e=>{e.preventDefault();let id=$('fuelTank').value,type=$('fuelType').value,amount=num('fuelAmount'),t=db.tanks.find(x=>x.id===id);if(!t)return alert('Seleziona una cisterna');if(type==='consegna'&&stock(id)+amount>t.capacity)return alert('La consegna supera la capacità');if(type==='prelievo'&&amount>stock(id))return alert('Carburante insufficiente');db.fuel.push({id:uid(),tankId:id,type,date:$('fuelDate').value,amount,machineId:$('fuelMachine').value,cost:num('fuelCost'),ref:$('fuelRef').value,notes:$('fuelNotes').value});e.target.reset();$('fuelDate').value=today();save()};
 $('maintForm').onsubmit=e=>{e.preventDefault();if(!$('maintMachine').value)return alert('Aggiungi prima un mezzo');db.maintenance.push({id:uid(),machineId:$('maintMachine').value,type:$('maintType').value,date:$('maintDate').value,due:$('maintDue').value,hours:num('maintHours'),cost:num('maintCost'),notes:$('maintNotes').value});e.target.reset();$('maintDate').value=today();save()};
 $('materialForm').onsubmit=e=>{e.preventDefault();db.materials.push({id:uid(),name:$('matName').value,density:num('matDensity'),factor:num('matFactor')});e.target.reset();save()};
 function filtered(){return db.reports.filter(r=>(!$('filterSite').value||r.siteId===$('filterSite').value)&&(!$('filterFrom').value||r.date>=$('filterFrom').value)&&(!$('filterTo').value||r.date<=$('filterTo').value)).sort((a,b)=>b.date.localeCompare(a.date))}
 function renderReports(){let a=filtered();$('hoursSummary').textContent='Rapporti: '+a.length+' · Ore totali: '+fmt(a.reduce((s,r)=>s+Number(r.hours),0));$('reportList').innerHTML=a.map(r=>`<div class="item"><strong>${esc(r.date)} · ${fmt(r.hours)} ore</strong><div class="meta">${esc(sname(r.siteId))} · ${esc(mname(r.machineId))}</div>${esc(r.activity||'')}<div class="meta">${esc(r.notes||'')}</div><div class="actions"><button onclick="del('reports','${r.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun rapporto.</p>'}
-                                                                                                                                                             function render(){ $('siteList').innerHTML=db.sites.map(s=>`<div class="item"><strong>${esc(s.code)} ${esc(s.name||'')}</strong><div class="meta">${esc(s.place||'')} ${esc(s.notes||'')}</div><div class="actions"><button onclick="del('sites','${s.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun cantiere.</p>';
-$('machineList').innerHTML=db.machines.map(m=>`<div class="item"><strong>${esc(m.name)} ${esc(m.code||'')}</strong><div class="meta">${esc(m.type||'')} · Ore: ${fmt(db.reports.filter(r=>r.machineId===m.id).reduce((s,r)=>s+Number(r.hours),0))} ${m.capacity?'· Cassone '+fmt(m.capacity)+' m³':''} ${m.payload?'· Portata '+fmt(m.payload)+' t':''}</div><div class="actions"><button onclick="del('machines','${m.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun mezzo.</p>';
-let f=$('filterSite').value;$('reportSite').innerHTML=opts(db.sites,s=>s.code+' '+(s.name||''));$('filterSite').innerHTML='<option value="">Tutti i cantieri</option>'+db.sites.map(s=>`<option value="${s.id}">${esc(s.code)}</option>`).join('');$('filterSite').value=f;$('reportMachine').innerHTML=opts(db.machines,m=>m.name);$('fuelMachine').innerHTML=opts(db.machines,m=>m.name,'Nessun mezzo');$('maintMachine').innerHTML=opts(db.machines,m=>m.name);$('fuelTank').innerHTML=opts(db.tanks,t=>t.name+' · '+fmt(stock(t.id))+' L');
-$('tankList').innerHTML=db.tanks.map(t=>`<div class="item"><strong>${esc(t.name)} · ${esc(t.fuel)}</strong><div class="meta">Giacenza ${fmt(stock(t.id))} / ${fmt(t.capacity)} L</div><div class="actions"><button onclick="del('tanks','${t.id}')">Elimina cisterna</button></div></div>`).join('')||'<p class="note">Nessuna cisterna.</p>';
-$('fuelList').innerHTML=db.fuel.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)} · ${fmt(x.amount)} L</strong><div class="meta">${esc(db.tanks.find(t=>t.id===x.tankId)?.name||'Cisterna eliminata')} ${x.machineId?'· '+esc(mname(x.machineId)):''} ${x.cost?'· CHF '+fmt(x.cost):''} ${esc(x.ref||'')}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('fuel','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun movimento.</p>';
-renderReports();$('maintList').innerHTML=db.maintenance.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)}</strong><div class="meta">${esc(mname(x.machineId))} ${x.due?'· Scadenza '+esc(x.due):''} ${x.hours?'· '+fmt(x.hours)+' ore':''} ${x.cost?'· CHF '+fmt(x.cost):''}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('maintenance','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessuna manutenzione.</p>';
-$('materialList').innerHTML=db.materials.map(x=>`<div class="item"><strong>${esc(x.name)}</strong><div class="meta">Densità ${fmt(x.density)} t/m³ · Fattore ${fmt(x.factor)}</div><div class="actions"><button onclick="del('materials','${x.id}')">Elimina</button></div></div>`).join('');
-$('calcSaved').innerHTML=db.calculations.map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.title)}</strong>${esc(x.result)}<div class="actions"><button onclick="del('calculations','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun calcolo salvato.</p>';stats();$('storageInfo').textContent=`Salvati: ${db.sites.length} cantieri, ${db.machines.length} mezzi, ${db.reports.length} rapporti, ${db.tanks.length} cisterne.`}
 
+function render(){
+$('siteList').innerHTML=db.sites.map(s=>`<div class="item"><strong>${esc(s.code)} ${esc(s.name||'')}</strong><div class="meta">${esc(s.place||'')} ${esc(s.notes||'')}</div><div class="actions"><button onclick="del('sites','${s.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun cantiere.</p>';
+
+$('machineList').innerHTML=db.machines.map(m=>`<div class="item"><strong>${esc(m.name)} ${esc(m.code||'')}</strong><div class="meta">${esc(m.type||'')} · Ore: ${fmt(db.reports.filter(r=>r.machineId===m.id).reduce((s,r)=>s+Number(r.hours),0))} ${m.capacity?'· Cassone '+fmt(m.capacity)+' m³':''} ${m.payload?'· Portata '+fmt(m.payload)+' t':''}</div><div class="actions"><button onclick="del('machines','${m.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun mezzo.</p>';
+
+let f=$('filterSite').value;
+$('reportSite').innerHTML=opts(db.sites,s=>s.code+' '+(s.name||''));
+$('filterSite').innerHTML='<option value="">Tutti i cantieri</option>'+db.sites.map(s=>`<option value="${s.id}">${esc(s.code)}</option>`).join('');
+$('filterSite').value=f;
+$('reportMachine').innerHTML=opts(db.machines,m=>m.name);
+$('bulletinSite').innerHTML=opts(db.sites,s=>s.code+' '+(s.name||''));
+$('bulletinMachine').innerHTML=opts(db.machines,m=>m.name);
+$('fuelMachine').innerHTML=opts(db.machines,m=>m.name,'Nessun mezzo');
+$('maintMachine').innerHTML=opts(db.machines,m=>m.name);
+$('fuelTank').innerHTML=opts(db.tanks,t=>t.name+' · '+fmt(stock(t.id))+' L');
+
+$('tankList').innerHTML=db.tanks.map(t=>`<div class="item"><strong>${esc(t.name)} · ${esc(t.fuel)}</strong><div class="meta">Giacenza ${fmt(stock(t.id))} / ${fmt(t.capacity)} L</div><div class="actions"><button onclick="del('tanks','${t.id}')">Elimina cisterna</button></div></div>`).join('')||'<p class="note">Nessuna cisterna.</p>';
+
+$('fuelList').innerHTML=db.fuel.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)} · ${fmt(x.amount)} L</strong><div class="meta">${esc(db.tanks.find(t=>t.id===x.tankId)?.name||'Cisterna eliminata')} ${x.machineId?'· '+esc(mname(x.machineId)):''} ${x.cost?'· CHF '+fmt(x.cost):''} ${esc(x.ref||'')}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('fuel','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun movimento.</p>';
+
+renderReports();
+
+$('bulletinList').innerHTML=(db.bulletins||[]).slice().sort((a,b)=>b.from.localeCompare(a.from)).map(b=>`
+<div class="item">
+<strong>${esc(b.number)} · ${fmt(b.hours)} ore</strong>
+<div class="meta">${esc(b.from)} – ${esc(b.to)}</div>
+<div class="meta">${esc(b.operator)} · ${esc(sname(b.siteId))}</div>
+<div class="meta">${esc(mname(b.machineId))} · Contaore ${fmt(b.hourStart)} → ${fmt(b.hourEnd)}</div>
+<p>${esc(b.work)}</p>
+<div class="meta">${esc(b.notes||'')}</div>
+<div class="actions">
+<button onclick="del('bulletins','${b.id}')">Elimina</button>
+<button onclick="window.print()">Stampa / PDF</button>
+</div>
+</div>`).join('')||'<p class="note">Nessun bollettino salvato.</p>';
+
+$('maintList').innerHTML=db.maintenance.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)}</strong><div class="meta">${esc(mname(x.machineId))} ${x.due?'· Scadenza '+esc(x.due):''} ${x.hours?'· '+fmt(x.hours)+' ore':''} ${x.cost?'· CHF '+fmt(x.cost):''}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('maintenance','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessuna manutenzione.</p>';
+
+$('materialList').innerHTML=db.materials.map(x=>`<div class="item"><strong>${esc(x.name)}</strong><div class="meta">Densità ${fmt(x.density)} t/m³ · Fattore ${fmt(x.factor)}</div><div class="actions"><button onclick="del('materials','${x.id}')">Elimina</button></div></div>`).join('');
+
+$('calcSaved').innerHTML=db.calculations.map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.title)}</strong>${esc(x.result)}<div class="actions"><button onclick="del('calculations','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun calcolo salvato.</p>';
+
+stats();
+$('storageInfo').textContent=`Salvati: ${db.sites.length} cantieri, ${db.machines.length} mezzi, ${db.reports.length} rapporti, ${db.tanks.length} cisterne.`;
+}
+ 
 const defs={
 slope:[],
 earth:[['a','Lunghezza (m)',10],['b','Larghezza (m)',2],['c','Profondità (m)',1]],
