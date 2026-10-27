@@ -3,96 +3,26 @@
 <style>
 :root{--bg:#101820;--p:#1b2732;--line:#344452;--txt:#f4f7fa;--muted:#b5c2cd;--a:#f0a43a}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:16px system-ui,sans-serif}header{padding:16px;background:#17212b}main{max-width:950px;margin:auto;padding:12px}.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}button{padding:10px;border:1px solid var(--line);border-radius:9px;background:#263746;color:var(--txt);font:inherit;cursor:pointer}button.active,button.primary{background:var(--a);color:#18212a}.primary{width:100%;margin-top:10px}.panel{background:var(--p);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}h2{font-size:19px;margin:0 0 10px}label{display:block;color:var(--muted);font-size:13px;margin:9px 0 4px}input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--txt);font:inherit}textarea{min-height:60px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.view[hidden]{display:none!important}.item{border:1px solid var(--line);border-radius:9px;padding:10px;margin-top:8px;overflow-wrap:anywhere}.meta,.note{color:var(--muted);font-size:12px}.actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.actions button{font-size:12px}.result{background:var(--bg);padding:10px;border-radius:8px;margin-top:10px}@media(max-width:480px){.tabs button{font-size:12px;padding:8px}.row{grid-template-columns:1fr}}@media print{.tabs,form,button{display:none!important}}
 </style></head><body><header><h1>🚧 Cantiere Pro</h1><p>Gestione cantieri, mezzi, ore, carburante e calcoli</p></header><main>
-<nav class="tabs"><button class="active" data-page="cantieri">Cantieri</button><button data-page="mezzi">Mezzi</button><button data-page="rapporti">Rapporti / ore</button>
-      
-<button data-page="bollettini">Bollettini</button>
-      <button data-page="carburante">Carburante</button><button data-page="calcoli">Calcoli edili</button><button data-page="manutenzione">Manutenzione</button><button data-page="statistiche">Statistiche</button><button data-page="backup">Backup</button></nav>
+<nav class="tabs"><button class="active" data-page="cantieri">Cantieri</button><button data-page="mezzi">Mezzi</button><button data-page="rapporti">Rapporti / ore</button><button data-page="carburante">Carburante</button><button data-page="calcoli">Calcoli edili</button><button data-page="manutenzione">Manutenzione</button><button data-page="statistiche">Statistiche</button><button data-page="backup">Backup</button></nav>
 <section id="cantieri" class="view"><div class="panel"><h2>Nuovo cantiere</h2><form id="siteForm"><label>Codice *</label><input id="siteCode" required placeholder="C-2026-01"><label>Nome</label><input id="siteName"><label>Località</label><input id="sitePlace"><label>Note</label><textarea id="siteNotes"></textarea><button class="primary">Salva cantiere</button></form></div><div class="panel"><h2>Elenco cantieri</h2><div id="siteList"></div></div></section>
 <section id="mezzi" class="view" hidden><div class="panel"><h2>Nuovo mezzo</h2><form id="machineForm"><label>Nome / modello *</label><input id="machineName" required placeholder="Hitachi 350 LCN"><label>Codice</label><input id="machineCode"><label>Tipo</label><select id="machineType"><option>Escavatore</option><option>Camion</option><option>Pala</option><option>Rullo</option><option>Furgone</option><option>Altro</option></select><div class="row"><div><label>Capacità cassone m³</label><input id="machineCapacity" type="number" min="0" step=".1"></div><div><label>Portata t</label><input id="machinePayload" type="number" min="0" step=".1"></div></div><label>Consumo l/ora</label><input id="machineConsumption" type="number" min="0" step=".1"><button class="primary">Salva mezzo</button></form></div><div class="panel"><h2>Elenco mezzi</h2><div id="machineList"></div></div></section>
 <section id="rapporti" class="view" hidden><div class="panel"><h2>Registra ore</h2><form id="reportForm"><label>Data *</label><input id="reportDate" type="date" required><label>Cantiere *</label><select id="reportSite" required></select><label>Mezzo *</label><select id="reportMachine" required></select><label>Ore *</label><input id="reportHours" type="number" min=".25" max="24" step=".25" required><label>Attività</label><input id="reportActivity"><label>Note</label><textarea id="reportNotes"></textarea><button class="primary">Salva rapporto</button></form></div><div class="panel"><h2>Archivio rapporti</h2><label>Filtra cantiere</label><select id="filterSite"></select><div class="row"><div><label>Dal</label><input id="filterFrom" type="date"></div><div><label>Al</label><input id="filterTo" type="date"></div></div><button id="filterBtn" type="button">Applica filtri</button><div id="hoursSummary" class="result"></div><div id="reportList"></div><button id="reportsCsv" type="button">Esporta rapporti CSV</button></div></section>
-
-<section id="bollettini" class="view" hidden>
-  <div class="panel">
-    <h2>Nuovo bollettino settimanale</h2>
-
-    <form id="bulletinForm">
-      <label>Numero bollettino</label>
-      <input id="bulletinNumber" placeholder="Es. 001">
-
-      <label>Operatore</label>
-      <input id="bulletinOperator" placeholder="Nome e cognome">
-
-      <label>Dal</label>
-      <input id="bulletinFrom" type="date" required>
-
-      <label>Al</label>
-      <input id="bulletinTo" type="date" required>
-
-      <label>Cantiere</label>
-      <select id="bulletinSite" required></select>
-
-      <label>Mezzo</label>
-      <select id="bulletinMachine" required></select>
-
-      <label>Contaore iniziale</label>
-      <input id="bulletinStart" type="number" min="0" step="0.1" required>
-
-      <label>Contaore finale</label>
-      <input id="bulletinEnd" type="number" min="0" step="0.1" required>
-
-      <div class="result" id="bulletinHours">
-        Ore calcolate: 0
-      </div>
-
-      <label>Descrizione dei lavori della settimana</label>
-      <textarea id="bulletinWork" rows="8"
-        style="min-height:200px"
-        placeholder="Lunedì: ...
-Martedì: ...
-Mercoledì: ...
-Giovedì: ...
-Venerdì: ..."></textarea>
-
-      <label>Materiali, trasporti e annotazioni</label>
-      <textarea id="bulletinNotes" rows="5"
-        style="min-height:120px"></textarea>
-
-      <button class="primary" type="submit">
-        Salva bollettino settimanale
-      </button>
-    </form>
-  </div>
-
-  <div class="panel">
-    <h2>Archivio bollettini</h2>
-    <label>Filtra per cantiere</label>
-    <select id="bulletinFilter"></select>
-    <div id="bulletinList"></div>
-  </div>
-</section>
-      
-const defaults={
-  sites:[],
-  machines:[],
-  reports:[],
-  bulletins:[],
-  tanks:[],
-  fuel:[],
-  maintenance:[],
-  materials:[
-    {id:'sand',name:'Sabbia',density:1.6,factor:1.2},
-    {id:'gravel',name:'Ghiaia',density:1.8,factor:1.2},
-    {id:'soil',name:'Terra',density:1.5,factor:1.25},
-    {id:'concrete',name:'Calcestruzzo',density:2.4,factor:1}
-  ],
-  calculations:[]
-};
-      
+<section id="carburante" class="view" hidden><div class="panel"><h2>Aggiungi cisterna</h2><form id="tankForm"><label>Nome *</label><input id="tankName" required><label>Carburante</label><select id="tankFuel"><option>Diesel</option><option>Benzina</option><option>AdBlue</option><option>Altro</option></select><div class="row"><div><label>Capacità L *</label><input id="tankCapacity" type="number" min="1" required></div><div><label>Giacenza iniziale L *</label><input id="tankInitial" type="number" min="0" value="0" required></div></div><button class="primary">Salva cisterna</button></form></div><div class="panel"><h2>Movimento carburante</h2><form id="fuelForm"><label>Cisterna *</label><select id="fuelTank" required></select><label>Movimento</label><select id="fuelType"><option value="ordine">Ordine effettuato</option><option value="consegna">Consegna ricevuta</option><option value="prelievo">Prelievo / rifornimento</option></select><label>Data *</label><input id="fuelDate" type="date" required><label>Litri *</label><input id="fuelAmount" type="number" min=".1" step=".1" required><label>Mezzo</label><select id="fuelMachine"></select><div class="row"><div><label>Costo CHF</label><input id="fuelCost" type="number" min="0" step=".01"></div><div><label>Riferimento</label><input id="fuelRef"></div></div><label>Note</label><textarea id="fuelNotes"></textarea><button class="primary">Registra movimento</button></form></div><div class="panel"><h2>Giacenze e storico</h2><div id="tankList"></div><div id="fuelList"></div></div></section>
+<section id="calcoli" class="view" hidden><div class="panel"><h2>Calcoli edili</h2><label>Tipo</label><select id="calcType"><option value="slope">Pendenza / dislivello</option><option value="earth">Volume scavo rettangolare</option><option value="trap">Volume trapezoidale</option><option value="truck">Viaggi camion</option><option value="pipe">Pendenza tubo</option><option value="concrete">Calcestruzzo</option><option value="density">Peso materiale</option><option value="percent">Percentuale</option><option value="scale">Scala disegno</option><option value="fuel">Consumo carburante</option><option value="units">Conversioni</option></select><div id="calcFields"></div><button class="primary" id="calculateBtn" type="button">Calcola</button><div id="calcResult" class="result">Inserisci i valori e premi Calcola.</div><p class="note">Valori indicativi: verifica sempre progetto e condizioni reali.</p></div><div class="panel"><h2>Tabella materiali</h2><form id="materialForm"><label>Materiale *</label><input id="matName" required><div class="row"><div><label>Densità t/m³</label><input id="matDensity" type="number" min=".01" step=".01" required></div><div><label>Fattore sciolto</label><input id="matFactor" type="number" min=".1" step=".01" value="1.2" required></div></div><button class="primary">Aggiungi materiale</button></form><div id="materialList"></div><h2 style="margin-top:14px">Calcoli salvati</h2><div id="calcSaved"></div></div></section>
+<section id="manutenzione" class="view" hidden><div class="panel"><h2>Manutenzioni e controlli</h2><form id="maintForm"><label>Mezzo *</label><select id="maintMachine" required></select><label>Tipo</label><select id="maintType"><option>Manutenzione programmata</option><option>Riparazione</option><option>Controllo giornaliero</option><option>Cambio olio</option><option>Filtri</option><option>Altro</option></select><div class="row"><div><label>Data *</label><input id="maintDate" type="date" required></div><div><label>Prossima scadenza</label><input id="maintDue" type="date"></div></div><div class="row"><div><label>Ore macchina</label><input id="maintHours" type="number" min="0" step=".1"></div><div><label>Costo CHF</label><input id="maintCost" type="number" min="0" step=".01"></div></div><label>Descrizione</label><textarea id="maintNotes"></textarea><button class="primary">Salva intervento</button></form></div><div class="panel"><h2>Storico</h2><div id="maintList"></div></div></section>
+<section id="statistiche" class="view" hidden><div class="panel"><h2>Statistiche ore</h2><div class="row"><div><label>Dal</label><input id="statsFrom" type="date"></div><div><label>Al</label><input id="statsTo" type="date"></div></div><button class="primary" id="statsBtn" type="button">Aggiorna</button><div id="statsResults"></div></div><div class="panel"><h2>Stampa / PDF</h2><button id="printBtn" type="button">Stampa / salva PDF</button></div></section>
+<section id="backup" class="view" hidden><div class="panel"><h2>Backup e ripristino</h2><button class="primary" id="exportBtn" type="button">Scarica backup completo JSON</button><label>Ripristina backup JSON</label><input id="importFile" type="file" accept=".json,application/json"><button class="primary" id="csvBtn" type="button">Esporta tutti i rapporti CSV</button><div id="storageInfo" class="result"></div><p class="note">I dati restano nel browser di questo dispositivo e non si sincronizzano automaticamente. Conserva una copia del backup.</p></div></section>
+<p class="note">Cantiere Pro · archiviazione locale. Esegui regolarmente un backup.</p></main>
+<script>
+'use strict';
+const KEY='cantiereProData_v1', $=id=>document.getElementById(id), uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const today=()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}, esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])), num=id=>Number($(id).value)||0, fmt=n=>Number(n||0).toLocaleString('it-CH',{maximumFractionDigits:2});
+const defaults={sites:[],machines:[],reports:[],tanks:[],fuel:[],maintenance:[],materials:[{id:'sand',name:'Sabbia',density:1.6,factor:1.2},{id:'gravel',name:'Ghiaia',density:1.8,factor:1.2},{id:'soil',name:'Terra',density:1.5,factor:1.25},{id:'concrete',name:'Calcestruzzo',density:2.4,factor:1}],calculations:[]};
 let db;try{db={...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')};Object.keys(defaults).forEach(k=>{if(!Array.isArray(db[k]))db[k]=defaults[k].slice()})}catch(e){db=JSON.parse(JSON.stringify(defaults))}
 function download(name,content,type){let a=document.createElement('a'),u=URL.createObjectURL(new Blob([content],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db));render()}catch(e){alert('Spazio insufficiente: scarica un backup.')}}function del(k,id){if(confirm('Eliminare questo elemento?')){db[k]=db[k].filter(x=>x.id!==id);save()}}
 function sname(id){let x=db.sites.find(a=>a.id===id);return x?x.code+(x.name?' — '+x.name:''):'Cantiere eliminato'}function mname(id){let x=db.machines.find(a=>a.id===id);return x?x.name+(x.code?' ('+x.code+')':''):'Mezzo eliminato'}
-function stock(id){let t=db.tanks.find(x=>x.id===id);return t?Number(t.initial||0)+db.fuel.filter(x=>x.tankId===id&&x.type==='consegna').reduce((a,x)=>a+Number(x.amount),0)-db.fuel.filter(x=>x.tankId===id&&x.type==='prelievo').reduce((a,x)=>a+Number(x.amount),0):0}
+ function stock(id){let t=db.tanks.find(x=>x.id===id);return t?Number(t.initial||0)+db.fuel.filter(x=>x.tankId===id&&x.type==='consegna').reduce((a,x)=>a+Number(x.amount),0)-db.fuel.filter(x=>x.tankId===id&&x.type==='prelievo').reduce((a,x)=>a+Number(x.amount),0):0}
 function opts(arr,fn,empty='Seleziona'){return '<option value="">'+empty+'</option>'+arr.map(x=>`<option value="${esc(x.id)}">${esc(fn(x))}</option>`).join('')}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==b.dataset.page);render()});
 ['reportDate','fuelDate','maintDate'].forEach(id=>$(id).value=today());
@@ -103,110 +33,16 @@ $('tankForm').onsubmit=e=>{e.preventDefault();if(num('tankInitial')>num('tankCap
 $('fuelForm').onsubmit=e=>{e.preventDefault();let id=$('fuelTank').value,type=$('fuelType').value,amount=num('fuelAmount'),t=db.tanks.find(x=>x.id===id);if(!t)return alert('Seleziona una cisterna');if(type==='consegna'&&stock(id)+amount>t.capacity)return alert('La consegna supera la capacità');if(type==='prelievo'&&amount>stock(id))return alert('Carburante insufficiente');db.fuel.push({id:uid(),tankId:id,type,date:$('fuelDate').value,amount,machineId:$('fuelMachine').value,cost:num('fuelCost'),ref:$('fuelRef').value,notes:$('fuelNotes').value});e.target.reset();$('fuelDate').value=today();save()};
 $('maintForm').onsubmit=e=>{e.preventDefault();if(!$('maintMachine').value)return alert('Aggiungi prima un mezzo');db.maintenance.push({id:uid(),machineId:$('maintMachine').value,type:$('maintType').value,date:$('maintDate').value,due:$('maintDue').value,hours:num('maintHours'),cost:num('maintCost'),notes:$('maintNotes').value});e.target.reset();$('maintDate').value=today();save()};
 $('materialForm').onsubmit=e=>{e.preventDefault();db.materials.push({id:uid(),name:$('matName').value,density:num('matDensity'),factor:num('matFactor')});e.target.reset();save()};
-      
-function updateBulletinHours(){
-  const a=$('bulletinStart').value;
-  const b=$('bulletinEnd').value;
-
-  if(a!=='' && b!=='' && Number(b)>=Number(a)){
-    $('bulletinHours').textContent=
-      'Ore calcolate: '+fmt(Number(b)-Number(a));
-  }else{
-    $('bulletinHours').textContent=
-      'Inserisci le letture iniziale e finale del contaore.';
-  }
-}
-
-['bulletinStart','bulletinEnd'].forEach(id=>{
-  $(id).addEventListener('input',updateBulletinHours);
-});
-
-$('bulletinForm').onsubmit=e=>{
-  e.preventDefault();
-
-  if(!db.sites.length || !db.machines.length){
-    alert('Inserisci prima un cantiere e un mezzo.');
-    return;
-  }
-
-  const start=$('bulletinStart').value;
-  const end=$('bulletinEnd').value;
-
-  if($('bulletinTo').value<$('bulletinFrom').value){
-    alert('La data finale deve essere successiva alla data iniziale.');
-    return;
-  }
-
-  if(start==='' || end==='' || Number(end)<Number(start)){
-    alert('Controlla le letture del contaore.');
-    return;
-  }
-
-  db.bulletins.push({
-    id:uid(),
-    number:$('bulletinNumber').value.trim(),
-    operator:$('bulletinOperator').value.trim(),
-    from:$('bulletinFrom').value,
-    to:$('bulletinTo').value,
-    siteId:$('bulletinSite').value,
-    machineId:$('bulletinMachine').value,
-    start:Number(start),
-    end:Number(end),
-    hours:Number(end)-Number(start),
-    work:$('bulletinWork').value.trim(),
-    notes:$('bulletinNotes').value.trim()
-  });
-
-  e.target.reset();
-  updateBulletinHours();
-  save();
-};
-      
 function filtered(){return db.reports.filter(r=>(!$('filterSite').value||r.siteId===$('filterSite').value)&&(!$('filterFrom').value||r.date>=$('filterFrom').value)&&(!$('filterTo').value||r.date<=$('filterTo').value)).sort((a,b)=>b.date.localeCompare(a.date))}
 function renderReports(){let a=filtered();$('hoursSummary').textContent='Rapporti: '+a.length+' · Ore totali: '+fmt(a.reduce((s,r)=>s+Number(r.hours),0));$('reportList').innerHTML=a.map(r=>`<div class="item"><strong>${esc(r.date)} · ${fmt(r.hours)} ore</strong><div class="meta">${esc(sname(r.siteId))} · ${esc(mname(r.machineId))}</div>${esc(r.activity||'')}<div class="meta">${esc(r.notes||'')}</div><div class="actions"><button onclick="del('reports','${r.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun rapporto.</p>'}
-function render(){ $('siteList').innerHTML=db.sites.map(s=>`<div class="item"><strong>${esc(s.code)} ${esc(s.name||'')}</strong><div class="meta">${esc(s.place||'')} ${esc(s.notes||'')}</div><div class="actions"><button onclick="del('sites','${s.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun cantiere.</p>';
+                                                                                                                                                             function render(){ $('siteList').innerHTML=db.sites.map(s=>`<div class="item"><strong>${esc(s.code)} ${esc(s.name||'')}</strong><div class="meta">${esc(s.place||'')} ${esc(s.notes||'')}</div><div class="actions"><button onclick="del('sites','${s.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun cantiere.</p>';
 $('machineList').innerHTML=db.machines.map(m=>`<div class="item"><strong>${esc(m.name)} ${esc(m.code||'')}</strong><div class="meta">${esc(m.type||'')} · Ore: ${fmt(db.reports.filter(r=>r.machineId===m.id).reduce((s,r)=>s+Number(r.hours),0))} ${m.capacity?'· Cassone '+fmt(m.capacity)+' m³':''} ${m.payload?'· Portata '+fmt(m.payload)+' t':''}</div><div class="actions"><button onclick="del('machines','${m.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun mezzo.</p>';
 let f=$('filterSite').value;$('reportSite').innerHTML=opts(db.sites,s=>s.code+' '+(s.name||''));$('filterSite').innerHTML='<option value="">Tutti i cantieri</option>'+db.sites.map(s=>`<option value="${s.id}">${esc(s.code)}</option>`).join('');$('filterSite').value=f;$('reportMachine').innerHTML=opts(db.machines,m=>m.name);$('fuelMachine').innerHTML=opts(db.machines,m=>m.name,'Nessun mezzo');$('maintMachine').innerHTML=opts(db.machines,m=>m.name);$('fuelTank').innerHTML=opts(db.tanks,t=>t.name+' · '+fmt(stock(t.id))+' L');
 $('tankList').innerHTML=db.tanks.map(t=>`<div class="item"><strong>${esc(t.name)} · ${esc(t.fuel)}</strong><div class="meta">Giacenza ${fmt(stock(t.id))} / ${fmt(t.capacity)} L</div><div class="actions"><button onclick="del('tanks','${t.id}')">Elimina cisterna</button></div></div>`).join('')||'<p class="note">Nessuna cisterna.</p>';
 $('fuelList').innerHTML=db.fuel.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)} · ${fmt(x.amount)} L</strong><div class="meta">${esc(db.tanks.find(t=>t.id===x.tankId)?.name||'Cisterna eliminata')} ${x.machineId?'· '+esc(mname(x.machineId)):''} ${x.cost?'· CHF '+fmt(x.cost):''} ${esc(x.ref||'')}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('fuel','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun movimento.</p>';
 renderReports();$('maintList').innerHTML=db.maintenance.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)}</strong><div class="meta">${esc(mname(x.machineId))} ${x.due?'· Scadenza '+esc(x.due):''} ${x.hours?'· '+fmt(x.hours)+' ore':''} ${x.cost?'· CHF '+fmt(x.cost):''}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('maintenance','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessuna manutenzione.</p>';
 $('materialList').innerHTML=db.materials.map(x=>`<div class="item"><strong>${esc(x.name)}</strong><div class="meta">Densità ${fmt(x.density)} t/m³ · Fattore ${fmt(x.factor)}</div><div class="actions"><button onclick="del('materials','${x.id}')">Elimina</button></div></div>`).join('');
-$('calcSaved').innerHTML=db.calculations.map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.title)}</strong>${esc(x.result)}<div class="actions"><button onclick="del('calculations','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun calcolo salvato.</p>';stats();$('storageInfo').textContent=`Salvati: ${db.sites.length} cantieri, ${db.machines.length} mezzi, ${db.reports.length} rapporti, ${db.tanks.length} cisterne.`;renderBulletins()}
-      
-function renderBulletins(){
-  const siteValue=$('bulletinSite').value;
-  const machineValue=$('bulletinMachine').value;
-  const filterValue=$('bulletinFilter').value;
-
-  $('bulletinSite').innerHTML=opts(db.sites,s=>s.code+' '+(s.name||''));
-  $('bulletinMachine').innerHTML=opts(db.machines,m=>m.name);
-  $('bulletinFilter').innerHTML='<option value="">Tutti i cantieri</option>'+db.sites.map(s=>`<option value="${esc(s.id)}">${esc(s.code)}</option>`).join('');
-
-  $('bulletinSite').value=siteValue;
-  $('bulletinMachine').value=machineValue;
-  $('bulletinFilter').value=filterValue;
-
-  const list=db.bulletins.filter(b=>!filterValue||b.siteId===filterValue).slice().sort((a,b)=>b.from.localeCompare(a.from));
-
-  $('bulletinList').innerHTML=list.map(b=>`
-    <div class="item">
-      <strong>Bollettino ${esc(b.number||'—')}</strong>
-      <div class="meta">${esc(b.from)} – ${esc(b.to)} · ${esc(sname(b.siteId))} · ${esc(mname(b.machineId))}</div>
-      <p>Operatore: ${esc(b.operator||'—')}</p>
-      <p>Contaore: ${fmt(b.start)} → ${fmt(b.end)}</p>
-      <p><strong>Totale: ${fmt(b.hours)} ore</strong></p>
-      <p>${esc(b.work||'').replace(/\n/g,'<br>')}</p>
-      <p>${esc(b.notes||'')}</p>
-      <div class="actions">
-        <button type="button" onclick="del('bulletins','${b.id}')">Elimina</button>
-        <button type="button" onclick="window.print()">Stampa / PDF</button>
-      </div>
-    </div>
-  `).join('')||'<p class="note">Nessun bollettino salvato.</p>';
-}
-
-$('bulletinFilter').onchange=renderBulletins;
-      
+$('calcSaved').innerHTML=db.calculations.map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.title)}</strong>${esc(x.result)}<div class="actions"><button onclick="del('calculations','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun calcolo salvato.</p>';stats();$('storageInfo').textContent=`Salvati: ${db.sites.length} cantieri, ${db.machines.length} mezzi, ${db.reports.length} rapporti, ${db.tanks.length} cisterne.`}
 
 const defs={
 slope:[],
@@ -279,7 +115,6 @@ $('calcFields').innerHTML=`
        <input id="calc_${id}" type="number" step="any" value="${value}">`
     ).join('');
 }
-
 function renderTruckFields(){
   const mode=$('truckMode').value;
 
@@ -433,7 +268,6 @@ $('calcType').onchange=()=>{
     $('calcResult').textContent='Inserisci i valori e premi Calcola.';
   }
 };
-
 $('calculateBtn').onclick=()=>{
   if($('calcType').value==='slope'){
     if(!updateSlope()) return;
@@ -537,7 +371,7 @@ $('printBtn').onclick=()=>window.print();
 function csv(rows){
 return rows.map(row=>row.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
 }
-function exportReports(){
+ function exportReports(){
 const rows=[['Data','Codice cantiere','Cantiere','Mezzo','Ore','Attività','Note'],
 ...db.reports.map(r=>[r.date,db.sites.find(s=>s.id===r.siteId)?.code||'',sname(r.siteId),mname(r.machineId),r.hours,r.activity,r.notes])];
 download('rapporti-cantiere.csv','\uFEFF'+csv(rows),'text/csv;charset=utf-8');
@@ -559,4 +393,4 @@ finally{e.target.value=''}
 };
 calcFields();
 render();
-</script></body></html>
+</script></body></html>     
