@@ -11,50 +11,56 @@
   <div class="panel">
     <h2>Nuovo bollettino settimanale</h2>
     <form id="bulletinForm">
-      <label>Numero bollettino *</label>
-      <input id="bulletinNumber" required placeholder="Es. B-2026-001">
+    <form id="bulletinForm">
+  <label>Numero bollettino</label>
+  <input id="bulletinNumber" placeholder="Es. B-2026-001">
 
-      <label>Operatore *</label>
-      <input id="bulletinOperator" required>
+  <label>Operatore</label>
+  <input id="bulletinOperator">
 
-      <div class="row">
-        <div>
-          <label>Dal *</label>
-          <input id="bulletinFrom" type="date" required>
-        </div>
-        <div>
-          <label>Al *</label>
-          <input id="bulletinTo" type="date" required>
-        </div>
-      </div>
-
-      <label>Cantiere *</label>
-      <select id="bulletinSite" required></select>
-
-      <label>Mezzo *</label>
-      <select id="bulletinMachine" required></select>
-
-      <div class="row">
-        <div>
-          <label>Contaore iniziale *</label>
-          <input id="bulletinHourStart" type="number" min="0" step="0.1" required>
-        </div>
-        <div>
-          <label>Contaore finale *</label>
-          <input id="bulletinHourEnd" type="number" min="0" step="0.1" required>
-        </div>
-      </div>
-
-      <label>Lavori eseguiti *</label>
-      <textarea id="bulletinWork" required></textarea>
-
-      <label>Osservazioni</label>
-      <textarea id="bulletinNotes"></textarea>
-
-      <button class="primary" type="submit">Salva bollettino</button>
-    </form>
+  <div class="row">
+    <div>
+      <label>Dal</label>
+      <input id="bulletinFrom" type="date">
+    </div>
+    <div>
+      <label>Al</label>
+      <input id="bulletinTo" type="date">
+    </div>
   </div>
 
+  <label>Cantiere</label>
+  <select id="bulletinSite"></select>
+
+  <label>Mezzo</label>
+  <select id="bulletinMachine"></select>
+
+  <div class="row">
+    <div>
+      <label>Contaore iniziale</label>
+      <input id="bulletinHourStart" type="number" min="0" step="0.1">
+    </div>
+    <div>
+      <label>Contaore finale</label>
+      <input id="bulletinHourEnd" type="number" min="0" step="0.1">
+    </div>
+  </div>
+
+  <label>Lavori eseguiti</label>
+  <textarea id="bulletinWork"></textarea>
+
+  <label>Osservazioni</label>
+  <textarea id="bulletinNotes"></textarea>
+
+  <button class="primary" type="button" id="bulletinDraftBtn">
+    Salva bozza
+  </button>
+
+  <button class="primary" type="submit">
+    Chiudi e salva bollettino
+  </button>
+    </form>
+  </div>
   <div class="panel">
     <h2>Archivio bollettini</h2>
     <div id="bulletinList"></div>
@@ -82,7 +88,6 @@ document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.quer
 $('siteForm').onsubmit=e=>{e.preventDefault();let code=$('siteCode').value.trim();if(db.sites.some(x=>x.code.toLowerCase()===code.toLowerCase()))return alert('Codice già esistente');db.sites.push({id:uid(),code,name:$('siteName').value.trim(),place:$('sitePlace').value.trim(),notes:$('siteNotes').value.trim()});e.target.reset();save()};
 $('machineForm').onsubmit=e=>{e.preventDefault();db.machines.push({id:uid(),name:$('machineName').value.trim(),code:$('machineCode').value.trim(),type:$('machineType').value,capacity:num('machineCapacity'),payload:num('machinePayload'),consumption:num('machineConsumption')});e.target.reset();save()};
 $('reportForm').onsubmit=e=>{e.preventDefault();if(!db.sites.length||!db.machines.length)return alert('Inserisci prima un cantiere e un mezzo');db.reports.push({id:uid(),date:$('reportDate').value,siteId:$('reportSite').value,machineId:$('reportMachine').value,hours:num('reportHours'),activity:$('reportActivity').value,notes:$('reportNotes').value});e.target.reset();$('reportDate').value=today();save()};
-
 $('bulletinForm').onsubmit=e=>{
   e.preventDefault();
 
@@ -126,9 +131,8 @@ $('bulletinForm').onsubmit=e=>{
   e.target.reset();
   save();
   alert('Bollettino salvato correttamente.');
-};
- 
- $('tankForm').onsubmit=e=>{e.preventDefault();if(num('tankInitial')>num('tankCapacity'))return alert('La giacenza supera la capacità');db.tanks.push({id:uid(),name:$('tankName').value,fuel:$('tankFuel').value,capacity:num('tankCapacity'),initial:num('tankInitial')});e.target.reset();$('tankInitial').value=0;save()};
+}; 
+$('tankForm').onsubmit=e=>{e.preventDefault();if(num('tankInitial')>num('tankCapacity'))return alert('La giacenza supera la capacità');db.tanks.push({id:uid(),name:$('tankName').value,fuel:$('tankFuel').value,capacity:num('tankCapacity'),initial:num('tankInitial')});e.target.reset();$('tankInitial').value=0;save()};
 $('fuelForm').onsubmit=e=>{e.preventDefault();let id=$('fuelTank').value,type=$('fuelType').value,amount=num('fuelAmount'),t=db.tanks.find(x=>x.id===id);if(!t)return alert('Seleziona una cisterna');if(type==='consegna'&&stock(id)+amount>t.capacity)return alert('La consegna supera la capacità');if(type==='prelievo'&&amount>stock(id))return alert('Carburante insufficiente');db.fuel.push({id:uid(),tankId:id,type,date:$('fuelDate').value,amount,machineId:$('fuelMachine').value,cost:num('fuelCost'),ref:$('fuelRef').value,notes:$('fuelNotes').value});e.target.reset();$('fuelDate').value=today();save()};
 $('maintForm').onsubmit=e=>{e.preventDefault();if(!$('maintMachine').value)return alert('Aggiungi prima un mezzo');db.maintenance.push({id:uid(),machineId:$('maintMachine').value,type:$('maintType').value,date:$('maintDate').value,due:$('maintDue').value,hours:num('maintHours'),cost:num('maintCost'),notes:$('maintNotes').value});e.target.reset();$('maintDate').value=today();save()};
 $('materialForm').onsubmit=e=>{e.preventDefault();db.materials.push({id:uid(),name:$('matName').value,density:num('matDensity'),factor:num('matFactor')});e.target.reset();save()};
@@ -156,21 +160,25 @@ $('tankList').innerHTML=db.tanks.map(t=>`<div class="item"><strong>${esc(t.name)
 $('fuelList').innerHTML=db.fuel.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)} · ${fmt(x.amount)} L</strong><div class="meta">${esc(db.tanks.find(t=>t.id===x.tankId)?.name||'Cisterna eliminata')} ${x.machineId?'· '+esc(mname(x.machineId)):''} ${x.cost?'· CHF '+fmt(x.cost):''} ${esc(x.ref||'')}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('fuel','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessun movimento.</p>';
 
 renderReports();
-
-$('bulletinList').innerHTML=(db.bulletins||[]).slice().sort((a,b)=>b.from.localeCompare(a.from)).map(b=>`
+$('bulletinList').innerHTML=(db.bulletins||[])
+.slice()
+.sort((a,b)=>(b.from||'').localeCompare(a.from||''))
+.map(b=>`
 <div class="item">
-<strong>${esc(b.number)} · ${fmt(b.hours)} ore</strong>
-<div class="meta">${esc(b.from)} – ${esc(b.to)}</div>
-<div class="meta">${esc(b.operator)} · ${esc(sname(b.siteId))}</div>
-<div class="meta">${esc(mname(b.machineId))} · Contaore ${fmt(b.hourStart)} → ${fmt(b.hourEnd)}</div>
-<p>${esc(b.work)}</p>
+<strong>${esc(b.number||'Bollettino senza numero')} · ${fmt(b.hours)} ore</strong>
+<div class="meta">${esc(b.from||'Data iniziale da inserire')} – ${esc(b.to||'Data finale da inserire')}</div>
+<div class="meta">${esc(b.operator||'Operatore da inserire')} · ${esc(sname(b.siteId))}</div>
+<div class="meta">${esc(mname(b.machineId))} · Contaore ${b.hourStart===null?'—':fmt(b.hourStart)} → ${b.hourEnd===null?'—':fmt(b.hourEnd)}</div>
+<p>${esc(b.work||'Lavori da inserire')}</p>
 <div class="meta">${esc(b.notes||'')}</div>
+<div class="meta"><strong>Stato:</strong> ${b.status==='draft'?'BOZZA IN LAVORAZIONE':'BOLLETTINO CHIUSO'}</div>
 <div class="actions">
+<button onclick="editBulletin('${b.id}')">Modifica</button>
 <button onclick="del('bulletins','${b.id}')">Elimina</button>
 <button onclick="window.print()">Stampa / PDF</button>
 </div>
-</div>`).join('')||'<p class="note">Nessun bollettino salvato.</p>';
-
+</div>
+`).join('')||'<p class="note">Nessun bollettino salvato.</p>';
 $('maintList').innerHTML=db.maintenance.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(x=>`<div class="item"><strong>${esc(x.date)} · ${esc(x.type)}</strong><div class="meta">${esc(mname(x.machineId))} ${x.due?'· Scadenza '+esc(x.due):''} ${x.hours?'· '+fmt(x.hours)+' ore':''} ${x.cost?'· CHF '+fmt(x.cost):''}</div>${esc(x.notes||'')}<div class="actions"><button onclick="del('maintenance','${x.id}')">Elimina</button></div></div>`).join('')||'<p class="note">Nessuna manutenzione.</p>';
 
 $('materialList').innerHTML=db.materials.map(x=>`<div class="item"><strong>${esc(x.name)}</strong><div class="meta">Densità ${fmt(x.density)} t/m³ · Fattore ${fmt(x.factor)}</div><div class="actions"><button onclick="del('materials','${x.id}')">Elimina</button></div></div>`).join('');
