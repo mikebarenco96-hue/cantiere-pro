@@ -88,50 +88,130 @@ document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>{document.quer
 $('siteForm').onsubmit=e=>{e.preventDefault();let code=$('siteCode').value.trim();if(db.sites.some(x=>x.code.toLowerCase()===code.toLowerCase()))return alert('Codice già esistente');db.sites.push({id:uid(),code,name:$('siteName').value.trim(),place:$('sitePlace').value.trim(),notes:$('siteNotes').value.trim()});e.target.reset();save()};
 $('machineForm').onsubmit=e=>{e.preventDefault();db.machines.push({id:uid(),name:$('machineName').value.trim(),code:$('machineCode').value.trim(),type:$('machineType').value,capacity:num('machineCapacity'),payload:num('machinePayload'),consumption:num('machineConsumption')});e.target.reset();save()};
 $('reportForm').onsubmit=e=>{e.preventDefault();if(!db.sites.length||!db.machines.length)return alert('Inserisci prima un cantiere e un mezzo');db.reports.push({id:uid(),date:$('reportDate').value,siteId:$('reportSite').value,machineId:$('reportMachine').value,hours:num('reportHours'),activity:$('reportActivity').value,notes:$('reportNotes').value});e.target.reset();$('reportDate').value=today();save()};
-$('bulletinForm').onsubmit=e=>{
-  e.preventDefault();
+let editingBulletinId = null;
 
-  if(!db.sites.length||!db.machines.length){
-    return alert('Inserisci prima un cantiere e un mezzo');
+function bulletinFormData(){
+  const startValue = $('bulletinHourStart').value;
+  const endValue = $('bulletinHourEnd').value;
+  const start = startValue === '' ? null : Number(startValue);
+  const end = endValue === '' ? null : Number(endValue);
+
+  return {
+    number: $('bulletinNumber').value.trim(),
+    operator: $('bulletinOperator').value.trim(),
+    from: $('bulletinFrom').value,
+    to: $('bulletinTo').value,
+    siteId: $('bulletinSite').value,
+    machineId: $('bulletinMachine').value,
+    hourStart: start,
+    hourEnd: end,
+    hours: start !== null && end !== null ? end - start : 0,
+    work: $('bulletinWork').value.trim(),
+    notes: $('bulletinNotes').value.trim()
+  };
+}
+
+function loadBulletin(id){
+  const b = db.bulletins.find(x => x.id === id);
+  if(!b) return;
+
+  editingBulletinId = id;
+  $('bulletinNumber').value = b.number || '';
+  $('bulletinOperator').value = b.operator || '';
+  $('bulletinFrom').value = b.from || '';
+  $('bulletinTo').value = b.to || '';
+  $('bulletinSite').value = b.siteId || '';
+  $('bulletinMachine').value = b.machineId || '';
+  $('bulletinHourStart').value = b.hourStart ?? '';
+  $('bulletinHourEnd').value = b.hourEnd ?? '';
+  $('bulletinWork').value = b.work || '';
+  $('bulletinNotes').value = b.notes || '';
+
+  $('bulletinForm').scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  });
+}
+
+function editBulletin(id){
+  loadBulletin(id);
+}
+
+function saveBulletin(status){
+  const data = bulletinFormData();
+
+  if(status === 'closed'){
+    const required = [
+      ['number','Numero bollettino'],
+      ['operator','Operatore'],
+      ['from','Data iniziale'],
+      ['to','Data finale'],
+      ['siteId','Cantiere'],
+      ['machineId','Mezzo'],
+      ['hourStart','Contaore iniziale'],
+      ['hourEnd','Contaore finale'],
+      ['work','Lavori eseguiti']
+    ];
+
+    for(const [key,label] of required){
+      if(data[key] === '' || data[key] === null){
+        return alert('Completa il campo: ' + label);
+      }
+    }
   }
 
-  const number=$('bulletinNumber').value.trim();
-  const from=$('bulletinFrom').value;
-  const to=$('bulletinTo').value;
-  const start=Number($('bulletinHourStart').value);
-  const end=Number($('bulletinHourEnd').value);
-
-  if(to<from){
+  if(data.from && data.to && data.to < data.from){
     return alert('La data finale non può precedere quella iniziale.');
   }
 
-  if(end<start){
+  if(data.hourStart !== null && data.hourEnd !== null &&
+     data.hourEnd < data.hourStart){
     return alert('Il contaore finale non può essere inferiore a quello iniziale.');
   }
 
-  if(db.bulletins.some(b=>(b.number||'').trim().toLowerCase()===number.toLowerCase())){
+  if(data.number && db.bulletins.some(b =>
+    b.id !== editingBulletinId &&
+    (b.number || '').trim().toLowerCase() === data.number.toLowerCase()
+  )){
     return alert('Questo numero di bollettino esiste già.');
   }
 
-  db.bulletins.push({
-    id:uid(),
-    number,
-    operator:$('bulletinOperator').value.trim(),
-    from,
-    to,
-    siteId:$('bulletinSite').value,
-    machineId:$('bulletinMachine').value,
-    hourStart:start,
-    hourEnd:end,
-    hours:end-start,
-    work:$('bulletinWork').value.trim(),
-    notes:$('bulletinNotes').value.trim()
-  });
+  const id = editingBulletinId || uid();
+  const index = db.bulletins.findIndex(b => b.id === id);
 
-  e.target.reset();
+  const record = {
+    ...(index >= 0 ? db.bulletins[index] : {}),
+    ...data,
+    id,
+    status
+  };
+
+  if(index >= 0){
+    db.bulletins[index] = record;
+  }else{
+    db.bulletins.push(record);
+  }
+
   save();
-  alert('Bollettino salvato correttamente.');
-}; 
+
+  if(status === 'draft'){
+    loadBulletin(id);
+    alert('Bozza salvata. Puoi continuare ad aggiornarla.');
+  }else{
+    editingBulletinId = null;
+    $('bulletinForm').reset();
+    alert('Bollettino chiuso e salvato correttamente.');
+  }
+}
+
+$('bulletinForm').onsubmit = e => {
+  e.preventDefault();
+  saveBulletin('closed');
+};
+
+$('bulletinDraftBtn').onclick = () => {
+  saveBulletin('draft');
+};
 $('tankForm').onsubmit=e=>{e.preventDefault();if(num('tankInitial')>num('tankCapacity'))return alert('La giacenza supera la capacità');db.tanks.push({id:uid(),name:$('tankName').value,fuel:$('tankFuel').value,capacity:num('tankCapacity'),initial:num('tankInitial')});e.target.reset();$('tankInitial').value=0;save()};
 $('fuelForm').onsubmit=e=>{e.preventDefault();let id=$('fuelTank').value,type=$('fuelType').value,amount=num('fuelAmount'),t=db.tanks.find(x=>x.id===id);if(!t)return alert('Seleziona una cisterna');if(type==='consegna'&&stock(id)+amount>t.capacity)return alert('La consegna supera la capacità');if(type==='prelievo'&&amount>stock(id))return alert('Carburante insufficiente');db.fuel.push({id:uid(),tankId:id,type,date:$('fuelDate').value,amount,machineId:$('fuelMachine').value,cost:num('fuelCost'),ref:$('fuelRef').value,notes:$('fuelNotes').value});e.target.reset();$('fuelDate').value=today();save()};
 $('maintForm').onsubmit=e=>{e.preventDefault();if(!$('maintMachine').value)return alert('Aggiungi prima un mezzo');db.maintenance.push({id:uid(),machineId:$('maintMachine').value,type:$('maintType').value,date:$('maintDate').value,due:$('maintDue').value,hours:num('maintHours'),cost:num('maintCost'),notes:$('maintNotes').value});e.target.reset();$('maintDate').value=today();save()};
