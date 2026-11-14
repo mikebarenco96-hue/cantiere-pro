@@ -255,7 +255,7 @@ $('bulletinList').innerHTML=(db.bulletins||[])
 <div class="actions">
 <button onclick="editBulletin('${b.id}')">Modifica</button>
 <button onclick="del('bulletins','${b.id}')">Elimina</button>
-<button onclick="window.print()">Stampa / PDF</button>
+<button onclick="printBulletin('${b.id}')">Stampa / PDF</button>
 </div>
 </div>
 `).join('')||'<p class="note">Nessun bollettino salvato.</p>';
