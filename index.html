@@ -593,7 +593,62 @@ db.machines.map(m=>`<div class="item">${esc(m.name)}: ${fmt(a.filter(r=>r.machin
 }
 $('statsBtn').onclick=stats;
 $('printBtn').onclick=()=>window.print();
-function csv(rows){
+
+function printBulletin(id){
+  const b = db.bulletins.find(x => x.id === id);
+  if(!b) return alert('Bollettino non trovato.');
+
+  const w = window.open('', '_blank');
+  if(!w) return alert('Consenti le finestre popup per stampare.');
+
+  w.document.write(`
+    <!DOCTYPE html>
+    <html lang="it">
+    <head>
+      <meta charset="UTF-8">
+      <title>Bollettino ${esc(b.number || '')}</title>
+      <style>
+        body{font-family:Arial,sans-serif;color:#111;padding:30px}
+        h1{border-bottom:2px solid #333;padding-bottom:12px}
+        .campo{margin:16px 0}
+        .label{font-weight:bold}
+        .lavori{white-space:pre-wrap;border:1px solid #ccc;padding:12px;min-height:100px}
+        @media print{body{padding:10px}}
+      </style>
+    </head>
+    <body>
+      <h1>BOLLETTINO SETTIMANALE</h1>
+
+      <div class="campo"><span class="label">Numero:</span> ${esc(b.number || '')}</div>
+      <div class="campo"><span class="label">Operatore:</span> ${esc(b.operator || '')}</div>
+      <div class="campo"><span class="label">Periodo:</span> ${esc(b.from || '')} – ${esc(b.to || '')}</div>
+      <div class="campo"><span class="label">Cantiere:</span> ${esc(sname(b.siteId))}</div>
+      <div class="campo"><span class="label">Mezzo:</span> ${esc(mname(b.machineId))}</div>
+
+      <div class="campo"><span class="label">Contaore iniziale:</span> ${b.hourStart == null ? '—' : fmt(b.hourStart)}</div>
+      <div class="campo"><span class="label">Contaore finale:</span> ${b.hourEnd == null ? '—' : fmt(b.hourEnd)}</div>
+      <div class="campo"><span class="label">Ore lavorate:</span> ${fmt(b.hours)}</div>
+
+      <h3>Lavori eseguiti</h3>
+      <div class="lavori">${esc(b.work || '')}</div>
+
+      <h3>Osservazioni</h3>
+      <div class="lavori">${esc(b.notes || '')}</div>
+
+      <p style="margin-top:40px">Firma: __________________________</p>
+    </body>
+    </html>
+  `);
+
+  w.document.close();
+
+  setTimeout(() => {
+    w.focus();
+    w.print();
+  }, 500);
+                                                                                          }
+ 
+ function csv(rows){
 return rows.map(row=>row.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';')).join('\r\n');
 }
  function exportReports(){
